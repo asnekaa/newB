@@ -140,10 +140,35 @@ class FilterEngine {
         const title = titleEl.textContent.trim();
         const videoUrl = linkEl.href;
 
-        const upEl = card.querySelector('.bili-video-card__info--author, .up-name__text, .up-name, .upname .name');
-        const upLinkEl = card.querySelector('a[href*="space.bilibili.com"]') || upEl?.closest('a');
-        const up = upEl?.textContent?.trim() || '未知UP';
-        const upUrl = upLinkEl?.href || '';
+        const upEl = card.querySelector('.bili-video-card__info--author, .up-name__text, .up-name, .upname .name, .bili-video-card__info--owner, .bili-video-card__info--rcmd, .bili-live-card__info--author, .bili-live-card__info--uname-text');
+        let upLinkEl = card.querySelector('a[href*="space.bilibili.com"]');
+        if (!upLinkEl) {
+            upLinkEl = card.querySelector('a.bili-video-card__info--owner, a.up-name, a[href*="live.bilibili.com"], a[href*="bangumi/play/"]');
+        }
+        
+        let up = upEl?.textContent?.trim() || upLinkEl?.textContent?.trim();
+        
+        if (!up || up === "未知UP") {
+            const bottomEl = card.querySelector('.bili-video-card__info--bottom, .bili-live-card__info--text');
+            if (bottomEl) {
+                const bottomText = bottomEl.textContent.replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').split('·')[0].trim();
+                if (bottomText && !bottomText.includes('播放') && !bottomText.includes('弹幕') && !bottomText.includes('人气')) {
+                    up = bottomText;
+                }
+            }
+        }
+
+        const upUrl = upLinkEl?.href && !upLinkEl.href.startsWith('javascript:') ? upLinkEl.href : '';
+
+        up = (up || "").replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').trim();
+
+        // 错误数据清洗与官方内容强制覆盖
+        if (upUrl.includes('bangumi/play')) {
+            up = "未知UP";
+        } else if (!up || up === "未知UP" || /\d+(\.\d+)?万/.test(up) || /^(番剧|国创|电影|纪录片|电视剧|综艺|直播|课堂)$/.test(up)) {
+            if (upUrl.includes('live.bilibili.com')) up = "直播间";
+            else up = "未知UP";
+        }
 
         // 1. 时长过滤 (无需 API 请求，性能最高)
         if (this.config.minDuration > 0) {

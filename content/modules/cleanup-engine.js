@@ -33,26 +33,52 @@ class CleanupEngine {
 
         // 3. 提取 UP 主主页链接
         let upUrl = "";
-        const upLinkEl = card.querySelector('a[href*="space.bilibili.com"]');
+        let upLinkEl = card.querySelector('a[href*="space.bilibili.com"]');
+        
+        // 兼容官方番剧/电影/直播等非 space 域名的链接
+        if (!upLinkEl) {
+            upLinkEl = card.querySelector('a.bili-video-card__info--owner, a.up-name, a.author-name, a[href*="live.bilibili.com"], a[href*="bangumi/play/"]');
+        }
+
         if (upLinkEl?.href && !upLinkEl.href.startsWith('javascript:')) {
             upUrl = upLinkEl.href;
         } else {
-            const uidNode = card.querySelector('[data-uid], [data-user-id], [data-mid]');
+            const uidNode = card.querySelector('[data-uid],[data-user-id],[data-mid]');
             const uid = uidNode?.dataset.uid || uidNode?.dataset.userId || uidNode?.dataset.mid;
             if (uid) upUrl = `https://space.bilibili.com/${uid}`;
         }
 
-        // 4. 提取 UP 主名称
-        const upEl = card.querySelector('.bili-video-card__info--author, .up-name__text, .up-name, .upname .name, .bili-live-card__info--uname, .bili-live-card__info--uname-text, .bili-live-card__info--author, .room-anchor, .name-text, .author-name, .up-info__name, .author');
+        // 4. 提取 UP 主名称 (增加 owner 和 rcmd 等官方专属类名)
+        const upEl = card.querySelector('.bili-video-card__info--author, .up-name__text, .up-name, .upname .name, .bili-live-card__info--uname, .bili-live-card__info--uname-text, .bili-live-card__info--author, .room-anchor, .name-text, .author-name, .up-info__name, .author, .bili-video-card__info--owner, .bili-video-card__info--rcmd');
         let up = upEl?.textContent?.trim() || upLinkEl?.textContent?.trim();
         
-        // 兜底：尝试从头像 alt 属性获取 UP 主名称
+        // 尝试从头像 alt 属性获取 UP 主名称
         if (!up || up === "未知UP") {
             const avatarImg = card.querySelector('.bili-video-card__avatar img, .bili-live-card__avatar img, .avatar img, .up-avatar img, .v-img img');
-            up = avatarImg?.alt?.trim() || "未知UP";
+            up = avatarImg?.alt?.trim();
         }
+
+        // 尝试从 bottom 区域或直播卡片信息区提取纯文本
+        if (!up || up === "未知UP") {
+            const bottomEl = card.querySelector('.bili-video-card__info--bottom, .bili-live-card__info--text');
+            if (bottomEl) {
+                const bottomText = bottomEl.textContent.replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').split('·')[0].trim();
+                if (bottomText && !bottomText.includes('播放') && !bottomText.includes('弹幕') && !bottomText.includes('人气')) {
+                    up = bottomText;
+                }
+            }
+        }
+
         // 清理换行符与多余空格
-        up = up.replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').trim();
+        up = (up || "").replace(/[\r\n]+/g, '').replace(/\s+/g, ' ').trim();
+
+        // 基于 URL 的终极推断与错误数据清洗 (解决误提取到"电影615.1万"的问题)
+        if (upUrl.includes('bangumi/play')) {
+            up = "未知UP";
+        } else if (!up || up === "未知UP" || /\d+(\.\d+)?万/.test(up) || /^(番剧|国创|电影|纪录片|电视剧|综艺|直播|课堂)$/.test(up)) {
+            if (upUrl.includes('live.bilibili.com')) up = "直播间";
+            else up = "未知UP";
+        }
 
         // 5. 智能推断内容分类
         let category = "";
@@ -63,7 +89,7 @@ class CleanupEngine {
             const txt = b.textContent.trim();
             if (["广告", "🔥广告", "优质推广", "赞助"].includes(txt)) { category = "广告"; up = ""; break; }
             if (["直播", "正在直播"].includes(txt)) { category = "直播"; break; }
-            if (["番剧", "国创", "电影", "纪录片", "电视剧", "综艺"].includes(txt)) { category = txt; up = ""; break; }
+            if (["番剧", "国创", "电影", "纪录片", "电视剧", "综艺"].includes(txt)) { category = txt; break; }
             if (txt.includes("课程") || txt.includes("课堂")) { category = "课程"; break; }
         }
 
