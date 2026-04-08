@@ -3,9 +3,9 @@
   "name": "newB - Bilibili (B站) 体验优化引擎",
   "short_name": "newB",
   "version": "1.0.0",
-  "description": "极致优化 Bilibili (B站) 体验：页面净化、智能过滤、布局美化与防卡顿。",
+  "description": "优化 Bilibili (B站) 体验。",
   "default_locale": "zh_CN",
-  "author": "ESnake",
+  "author": "ASneka",
   
   "icons": {
     "128": "assets/icons/icon.png"
