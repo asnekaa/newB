@@ -27,9 +27,21 @@ class CleanupEngine {
         const titleEl = card.querySelector('.bili-video-card__info--tit, .title, .video-name, .room-title, .bili-live-card__info--tit, .course-title');
         const title = titleEl?.title || titleEl?.textContent?.trim() || "推广/活动内容";
         
-        // 2. 提取视频链接 (排除 javascript: 伪链接)
-        const linkEl = card.querySelector('a');
-        const videoUrl = (linkEl?.href && !linkEl.href.startsWith('javascript:')) ? linkEl.href : "";
+        // 2. 提取视频/推广链接 (排除 javascript: 伪链接，遍历寻找真实跳转地址)
+        let videoUrl = "";
+        const linkEls = card.querySelectorAll('a');
+        for (const a of linkEls) {
+            // 寻找第一个非 javascript 且非 UP 主主页的有效链接
+            if (a.href && !a.href.startsWith('javascript:') && !a.href.includes('space.bilibili.com')) {
+                videoUrl = a.href;
+                break;
+            }
+        }
+        // 部分特殊广告可能把链接写在 data 属性里
+        if (!videoUrl) {
+            const adNode = card.querySelector('[data-target-url], [data-url]');
+            videoUrl = adNode?.dataset?.targetUrl || adNode?.dataset?.url || "";
+        }
 
         // 3. 提取 UP 主主页链接
         let upUrl = "";
