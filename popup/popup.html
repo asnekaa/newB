@@ -108,14 +108,22 @@
         <!-- 夜间模式调度 -->
         <div class="form-group">
           <div class="inline-group">
-            <label for="ui-night-enabled">夜间模式 (定时自动切换)</label>
+            <label for="ui-night-enabled">夜间模式</label>
             <label class="switch">
               <input type="checkbox" id="ui-night-enabled">
               <span class="slider"></span>
             </label>
           </div>
           <div id="night-mode-options" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);">
-            <div class="input-row" style="margin-top: 8px; justify-content: flex-end; align-items: center; gap: 5px;">
+            <div class="inline-group">
+              <label for="ui-night-follow-system" style="font-weight: normal; color: var(--text-sub);">跟随系统</label>
+              <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
+                <input type="checkbox" id="ui-night-follow-system">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="input-row" id="night-time-range"
+              style="margin-top: 8px; justify-content: flex-end; align-items: center; gap: 5px; transition: opacity 0.3s;">
               <span style="font-size: 11px; color: var(--text-sub);">生效时段：</span>
               <input type="time" id="ui-night-start" style="width: 80px; font-size: 11px; text-align: center;">
               <span style="color: var(--text-sub);">至</span>

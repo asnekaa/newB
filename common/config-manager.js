@@ -40,8 +40,8 @@ class ConfigManager {
                 showCoverViewer: false,
                 nightMode: {
                     enabled: true,
-                    auto: true,
-                    start: "18:00",
+                    followSystem: true,
+                    start: "18:30",
                     end: "06:00"
                 }
             }

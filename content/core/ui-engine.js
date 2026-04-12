@@ -12,6 +12,16 @@ class UIEngine {
         this.storageKeyLayout = 'newb_layout_opt';
         this.storageKeyIp = 'newb_show_ip';
         this.storageKeyCdn = 'newb_optimize_cdn';
+        
+        this.currentNightModeConfig = null; // 缓存夜间模式配置
+        this.systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        
+        // 监听系统主题变化，实现无缝实时切换
+        this.systemThemeQuery.addEventListener('change', (e) => {
+            if (this.currentNightModeConfig?.enabled && this.currentNightModeConfig?.followSystem) {
+                this.applyNightMode(e.matches);
+            }
+        });
 
         // 核心机制：同步阻塞执行 (FOUC 防御)
         // 在 DOM 解析阶段立即读取缓存状态并注入深色主题，彻底杜绝页面刷新时的“白屏闪烁”
@@ -60,15 +70,30 @@ class UIEngine {
         root.classList.toggle('newb-user-info-hover-enabled', isUserInfoHover);
 
         // 4. 夜间模式调度与主题锁定
+        this.currentNightModeConfig = nm;
+        
+        let isDarkTime = false;
+        if (nm.enabled) {
+            isDarkTime = nm.followSystem ? this.systemThemeQuery.matches : this.isTimeInRange(nm.start, nm.end);
+        }
+        
+        this.applyNightMode(isDarkTime);
+    }
+
+    /**
+     * 应用夜间模式状态并锁定主题
+     * @param {boolean} isDark - 是否开启深色模式
+     */
+    applyNightMode(isDark) {
+        const root = document.documentElement;
+        localStorage.setItem('newb_night_mode_active', isDark);
+
         if (this.themeObserver) {
             this.themeObserver.disconnect();
             this.themeObserver = null;
         }
 
-        const isDarkTime = nm.enabled && this.isTimeInRange(nm.start, nm.end);
-        localStorage.setItem('newb_night_mode_active', isDarkTime);
-
-        if (isDarkTime) {
+        if (isDark) {
             root.classList.add(this.nightModeClass);
             this.lockThemeAttribute('dark');
         } else {

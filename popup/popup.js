@@ -1,9 +1,3 @@
-/**
- * ==========================================
- * 扩展弹出层交互逻辑 (Popup Controller)
- * 负责 UI 渲染、配置读写、事件绑定及云端同步
- * ==========================================
- */
 document.addEventListener('DOMContentLoaded', async () => {
     const configManager = window.newbConfigManager;
     let config = await configManager.loadConfig();
@@ -48,10 +42,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('ui-video-info-delay').value = ui.videoInfoHoverDelay ?? 500;
         
         // 3. 夜间模式渲染与自身主题切换
-        const nm = ui.nightMode || { enabled: true, start: "18:00", end: "06:00" };
+        const nm = ui.nightMode || { enabled: true, followSystem: true, start: "18:00", end: "06:00" };
         document.getElementById('ui-night-enabled').checked = nm.enabled;
+        document.getElementById('ui-night-follow-system').checked = nm.followSystem;
         document.getElementById('ui-night-start').value = nm.start;
         document.getElementById('ui-night-end').value = nm.end;
+
+        // 控制时间选择器的显示状态 (开启跟随系统时置灰)
+        const timeRangeEl = document.getElementById('night-time-range');
+        if (nm.followSystem) {
+            timeRangeEl.style.opacity = '0.5';
+            timeRangeEl.style.pointerEvents = 'none';
+        } else {
+            timeRangeEl.style.opacity = '1';
+            timeRangeEl.style.pointerEvents = 'auto';
+        }
 
         const isTimeInRange = (startStr, endStr) => {
             const now = new Date();
@@ -65,7 +70,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 : (currentMins >= startMins || currentMins <= endMins);
         };
         
-        document.body.classList.toggle('dark-mode', nm.enabled && isTimeInRange(nm.start, nm.end));
+        // 动态判断 Popup 自身是否需要开启暗黑模式
+        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDarkTime = nm.followSystem ? isSystemDark : isTimeInRange(nm.start, nm.end);
+        document.body.classList.toggle('dark-mode', nm.enabled && isDarkTime);
 
         // 4. 关键词标签渲染
         const renderTags = (containerId, list, type) => {
@@ -105,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         config.ui.nightMode = {
             enabled: document.getElementById('ui-night-enabled').checked,
+            followSystem: document.getElementById('ui-night-follow-system').checked,
             start: document.getElementById('ui-night-start').value,
             end: document.getElementById('ui-night-end').value
         };
@@ -159,12 +168,12 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
     const bindEvents = () => {
         // 1. 绑定所有开关与输入框的 Change 事件
-        const inputs =[
+            const inputs =[
             'master-switch', 'cleanup-enabled', 'ui-layout-opt', 'ui-show-ip', 
             'ui-optimize-cdn', 'ui-hide-hot-search', 'ui-show-cover-viewer', 
             'ui-video-info-hover', 'ui-video-info-hover-ai', 'ui-video-info-hover-reply', 
             'ui-user-info-hover', 'ui-video-info-delay', 'ui-night-enabled', 
-            'ui-night-start', 'ui-night-end', 'min-duration'
+            'ui-night-follow-system', 'ui-night-start', 'ui-night-end', 'min-duration'
         ];
         inputs.forEach(id => {
             const el = document.getElementById(id);
@@ -257,6 +266,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 7. 监听 Storage 变化，实现日志实时更新
         chrome.storage.onChanged.addListener((changes, area) => {
             if (area === 'local' && changes.blockedLogs) renderLogs();
+        });
+
+        // 8. 监听系统主题变化 (实时更新 Popup 自身主题)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if (config.ui?.nightMode?.followSystem) renderAll();
         });
     };
 
