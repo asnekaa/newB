@@ -1,9 +1,3 @@
-/**
- * ==========================================
- * UP主信息悬浮窗引擎 (User Info Hover Engine)
- * 负责在鼠标悬停用户链接时，异步获取并展示UP主详情与数据统计
- * ==========================================
- */
 class UserInfoHoverEngine {
     constructor() {
         this.config = { enabled: true, delay: 500 };

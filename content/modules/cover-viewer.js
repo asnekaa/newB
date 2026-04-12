@@ -1,9 +1,3 @@
-/**
- * ==========================================
- * 封面在线人数引擎 (Cover Viewer Engine)
- * 负责在视频卡片封面上实时显示当前在线观看人数
- * ==========================================
- */
 class CoverViewerEngine {
     constructor() {
         this.enabled = false;

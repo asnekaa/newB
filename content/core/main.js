@@ -1,9 +1,3 @@
-/**
- * ==========================================
- * 扩展核心入口 (Main Entry Point)
- * 负责模块初始化、DOM 监听调度及配置热更新
- * ==========================================
- */
 (function() {
     let domObserver = null;
     let debounceTimer = null;
