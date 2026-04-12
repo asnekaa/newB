@@ -105,46 +105,32 @@
       <!-- --- 2. 其他功能面板 (UI & Tools Settings) --- -->
       <section id="tab-tools" class="tab-pane">
         
-        <!-- 夜间模式调度 -->
+        <!-- 模块 1: 界面与主题 -->
+        <div class="section-title">🎨 界面与主题</div>
+        
         <div class="form-group">
           <div class="inline-group">
-            <label for="ui-night-enabled">夜间模式</label>
-            <label class="switch">
-              <input type="checkbox" id="ui-night-enabled">
-              <span class="slider"></span>
-            </label>
+            <label for="ui-night-mode-select">夜间模式</label>
+            <select id="ui-night-mode-select" class="newb-select">
+              <option value="off">关闭</option>
+              <option value="on">始终开启</option>
+              <option value="system">跟随系统</option>
+              <option value="custom">自定义时段</option>
+            </select>
           </div>
-          <div id="night-mode-options" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);">
-            <div class="inline-group">
-              <label for="ui-night-follow-system" style="font-weight: normal; color: var(--text-sub);">跟随系统</label>
-              <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
-                <input type="checkbox" id="ui-night-follow-system">
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="input-row" id="night-time-range"
-              style="justify-content: flex-end; align-items: center; gap: 5px; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-              <span style="font-size: 11px; color: var(--text-sub);">生效时段：</span>
-              <input type="time" id="ui-night-start" style="width: 80px; font-size: 11px; text-align: center;">
-              <span style="color: var(--text-sub);">至</span>
-              <input type="time" id="ui-night-end" style="width: 80px; font-size: 11px; text-align: center;">
-            </div>
+          <div class="input-row" id="night-time-range"
+            style="justify-content: flex-end; align-items: center; gap: 5px; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <span style="font-size: 11px; color: var(--text-sub);">生效时段：</span>
+            <input type="time" id="ui-night-start" style="width: 80px; font-size: 11px; text-align: center;">
+            <span style="color: var(--text-sub);">至</span>
+            <input type="time" id="ui-night-end" style="width: 80px; font-size: 11px; text-align: center;">
           </div>
         </div>
 
-        <!-- 核心 UI 增强开关 -->
         <div class="form-group inline-group">
           <label for="ui-layout-opt">优化页面布局 (网格重构/去冗余)</label>
           <label class="switch">
             <input type="checkbox" id="ui-layout-opt">
-            <span class="slider"></span>
-          </label>
-        </div>
-        
-        <div class="form-group inline-group">
-          <label for="ui-show-ip">显示评论 IP 属地</label>
-          <label class="switch">
-            <input type="checkbox" id="ui-show-ip">
             <span class="slider"></span>
           </label>
         </div>
@@ -157,15 +143,9 @@
           </label>
         </div>
 
-        <div class="form-group inline-group">
-          <label for="ui-show-cover-viewer" style="color: var(--bili-pink);" title="高频请求可能触发 B站 API 频率限制">显示视频封面观看人数 (易触发风控)</label>
-          <label class="switch">
-            <input type="checkbox" id="ui-show-cover-viewer">
-            <span class="slider"></span>
-          </label>
-        </div>
-
-        <!-- 悬浮窗高级设置 -->
+        <!-- 模块 2: 悬浮预览 -->
+        <div class="section-title">🖱️ 悬浮预览</div>
+        
         <div class="form-group">
           <div class="inline-group">
             <label for="ui-video-info-hover">视频信息悬浮窗 (鼠标悬停预览)</label>
@@ -174,31 +154,55 @@
               <span class="slider"></span>
             </label>
           </div>
-          <div class="inline-group" style="margin-top: 10px;">
-            <label for="ui-user-info-hover">UP主信息悬浮窗 (鼠标悬停预览)</label>
-            <label class="switch">
-              <input type="checkbox" id="ui-user-info-hover">
-              <span class="slider"></span>
-            </label>
+          
+          <!-- 视频悬浮窗子设置面板 -->
+          <div id="video-hover-sub-panel" class="sub-panel">
+            <div class="inline-group">
+              <label for="ui-video-info-hover-ai" style="font-weight: normal; color: var(--text-sub);">显示 AI 视频总结</label>
+              <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
+                <input type="checkbox" id="ui-video-info-hover-ai">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="inline-group" style="margin-top: 5px;">
+              <label for="ui-video-info-hover-reply" style="font-weight: normal; color: var(--text-sub);">显示热门评论</label>
+              <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
+                <input type="checkbox" id="ui-video-info-hover-reply">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="inline-group" style="margin-top: 5px;">
+              <label for="ui-video-info-delay" style="font-weight: normal; color: var(--text-sub);">触发延迟 (毫秒)</label>
+              <input type="number" id="ui-video-info-delay" min="100" step="100" style="width: 70px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: center;">
+            </div>
           </div>
-          <div class="inline-group" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border);">
-            <label for="ui-video-info-hover-ai" style="font-weight: normal; color: var(--text-sub);">显示 AI 视频总结</label>
-            <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
-              <input type="checkbox" id="ui-video-info-hover-ai">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="inline-group" style="margin-top: 5px;">
-            <label for="ui-video-info-hover-reply" style="font-weight: normal; color: var(--text-sub);">显示热门评论</label>
-            <label class="switch" style="transform: scale(0.8); transform-origin: right center;">
-              <input type="checkbox" id="ui-video-info-hover-reply">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="inline-group" style="margin-top: 5px;">
-            <label for="ui-video-info-delay" style="font-weight: normal; color: var(--text-sub);">触发延迟 (毫秒)</label>
-            <input type="number" id="ui-video-info-delay" min="100" step="100" style="width: 70px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; text-align: center;">
-          </div>
+        </div>
+
+        <div class="form-group inline-group">
+          <label for="ui-user-info-hover">UP主信息悬浮窗 (鼠标悬停预览)</label>
+          <label class="switch">
+            <input type="checkbox" id="ui-user-info-hover">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- 模块 3: 核心增强 -->
+        <div class="section-title">⚙️ 核心增强</div>
+
+        <div class="form-group inline-group">
+          <label for="ui-show-ip">显示评论 IP 属地</label>
+          <label class="switch">
+            <input type="checkbox" id="ui-show-ip">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group inline-group">
+          <label for="ui-show-cover-viewer" style="color: var(--bili-pink);" title="高频请求可能触发 B站 API 频率限制">显示视频封面观看人数 (易触发风控)</label>
+          <label class="switch">
+            <input type="checkbox" id="ui-show-cover-viewer">
+            <span class="slider"></span>
+          </label>
         </div>
       </section>
 

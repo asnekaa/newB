@@ -42,29 +42,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 3. 夜间模式渲染与自身主题切换
         const nm = ui.nightMode || { enabled: true, followSystem: true, start: "18:00", end: "06:00" };
-        document.getElementById('ui-night-enabled').checked = nm.enabled;
-        document.getElementById('ui-night-follow-system').checked = nm.followSystem;
+        
+        // 状态映射：将底层配置映射为 UI 的 4 种模式
+        let mode = 'off';
+        if (nm.enabled) {
+            if (nm.followSystem) mode = 'system';
+            else if (nm.start === '00:00' && nm.end === '23:59') mode = 'on';
+            else mode = 'custom';
+        }
+        document.getElementById('ui-night-mode-select').value = mode;
         document.getElementById('ui-night-start').value = nm.start;
         document.getElementById('ui-night-end').value = nm.end;
 
-        // 控制时间选择器的显示状态 (开启跟随系统时平滑折叠隐藏)
+        // 控制时间选择器的显示状态 (仅在自定义时段时展开)
         const timeRangeEl = document.getElementById('night-time-range');
-        if (nm.followSystem) {
+        if (mode === 'custom') {
+            timeRangeEl.style.maxHeight = '40px';
+            timeRangeEl.style.opacity = '1';
+            timeRangeEl.style.marginTop = '8px';
+            timeRangeEl.style.pointerEvents = 'auto';
+        } else {
             timeRangeEl.style.maxHeight = '0';
             timeRangeEl.style.opacity = '0';
             timeRangeEl.style.marginTop = '0';
             timeRangeEl.style.pointerEvents = 'none';
+        }
+
+        // 视频悬浮窗子面板的联动折叠
+        const videoHoverEnabled = ui.videoInfoHover ?? true;
+        const subPanel = document.getElementById('video-hover-sub-panel');
+        if (videoHoverEnabled) {
+            subPanel.style.maxHeight = '150px';
+            subPanel.style.opacity = '1';
+            subPanel.style.marginTop = '10px';
+            subPanel.style.pointerEvents = 'auto';
         } else {
-            timeRangeEl.style.maxHeight = '40px'; // 足够容纳输入框的高度
-            timeRangeEl.style.opacity = '1';
-            timeRangeEl.style.marginTop = '8px';
-            timeRangeEl.style.pointerEvents = 'auto';
+            subPanel.style.maxHeight = '0';
+            subPanel.style.opacity = '0';
+            subPanel.style.marginTop = '0';
+            subPanel.style.pointerEvents = 'none';
         }
 
         const isTimeInRange = (startStr, endStr) => {
             const now = new Date();
             const currentMins = now.getHours() * 60 + now.getMinutes();
-            const [sH, sM] = startStr.split(':').map(Number);
+            const[sH, sM] = startStr.split(':').map(Number);
             const [eH, eM] = endStr.split(':').map(Number);
             const startMins = sH * 60 + sM;
             const endMins = eH * 60 + eM;
@@ -75,8 +97,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // 动态判断 Popup 自身是否需要开启暗黑模式
         const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isDarkTime = nm.followSystem ? isSystemDark : isTimeInRange(nm.start, nm.end);
-        document.body.classList.toggle('dark-mode', nm.enabled && isDarkTime);
+        let isDarkTime = false;
+        if (mode === 'on') isDarkTime = true;
+        else if (mode === 'system') isDarkTime = isSystemDark;
+        else if (mode === 'custom') isDarkTime = isTimeInRange(nm.start, nm.end);
+        
+        document.body.classList.toggle('dark-mode', mode !== 'off' && isDarkTime);
 
         // 4. 关键词标签渲染
         const renderTags = (containerId, list, type) => {
@@ -113,11 +139,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         config.ui.userInfoHover = document.getElementById('ui-user-info-hover').checked;
         config.ui.videoInfoHoverDelay = parseInt(document.getElementById('ui-video-info-delay').value) || 500;
         
+        const nightModeSelect = document.getElementById('ui-night-mode-select').value;
         config.ui.nightMode = {
-            enabled: document.getElementById('ui-night-enabled').checked,
-            followSystem: document.getElementById('ui-night-follow-system').checked,
-            start: document.getElementById('ui-night-start').value,
-            end: document.getElementById('ui-night-end').value
+            enabled: nightModeSelect !== 'off',
+            followSystem: nightModeSelect === 'system',
+            // 巧妙映射：当选择"始终开启"时，将时间段设为全天，无需修改底层引擎代码
+            start: nightModeSelect === 'on' ? '00:00' : document.getElementById('ui-night-start').value,
+            end: nightModeSelect === 'on' ? '23:59' : document.getElementById('ui-night-end').value
         };
 
         await configManager.saveLocal(config);
@@ -174,8 +202,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             'master-switch', 'cleanup-enabled', 'ui-layout-opt', 'ui-show-ip', 
             'ui-hide-hot-search', 'ui-show-cover-viewer', 
             'ui-video-info-hover', 'ui-video-info-hover-ai', 'ui-video-info-hover-reply', 
-            'ui-user-info-hover', 'ui-video-info-delay', 'ui-night-enabled', 
-            'ui-night-follow-system', 'ui-night-start', 'ui-night-end', 'min-duration'
+            'ui-user-info-hover', 'ui-video-info-delay', 'ui-night-mode-select', 
+            'ui-night-start', 'ui-night-end', 'min-duration'
         ];
         inputs.forEach(id => {
             const el = document.getElementById(id);

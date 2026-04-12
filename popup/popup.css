@@ -180,6 +180,37 @@ code { background: #f1f2f3; padding: 2px 4px; border-radius: 4px; color: var(--b
   }
 }
 
+/* 分组标题 */
+.section-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-sub);
+  margin: 16px 0 8px 4px;
+}
+
+/* 自定义下拉菜单 */
+.newb-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+/* 子设置面板 (缩进与背景区分) */
+.sub-panel {
+  background: #f9f9f9;
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid #f1f2f3;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* 拨动开关 (Toggle Switch) */
 .switch {
   position: relative;
@@ -295,12 +326,31 @@ body.dark-mode {
     &.active { background: #232e3b; border-right-color: var(--bili-blue); }
   }
 
-  /* 表单控件暗黑化 */
-  input[type="text"], input[type="number"], input[type="time"] { 
-    background: #111820; color: #e0e5ea; border-color: #324052; 
-  }
-  .btn-secondary { background: #232e3b; color: #e0e5ea; border-color: #324052; }
-  .btn-clear { color: #e0e5ea; border-color: #324052; }
+    /* 表单控件暗黑化 */
+    input[type="text"],
+    input[type="number"],
+    input[type="time"],
+    .newb-select {
+      background: #111820;
+      color: #e0e5ea;
+      border-color: #324052;
+    }
+  
+    .sub-panel {
+      background: #111820;
+      border-color: #1a232c;
+    }
+  
+    .btn-secondary {
+      background: #232e3b;
+      color: #e0e5ea;
+      border-color: #324052;
+    }
+  
+    .btn-clear {
+      color: #e0e5ea;
+      border-color: #324052;
+    }
   
   /* 标签与代码块暗黑化 */
   .tag { background: #1a3244; border-color: #1e4b68; color: #5bc0de; }
