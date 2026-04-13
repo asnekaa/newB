@@ -25,8 +25,28 @@
     --newb-editor-focus-bg: #FFFFFF !important;
 
     /* --- 2. 基础交互与滚动条 --- */
-    & { scroll-behavior: smooth; }
-    & ::-webkit-scrollbar { display: none; }
+    & {
+        scroll-behavior: smooth;
+    }
+
+    & ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+        background: transparent;
+    }
+
+    & ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    & ::-webkit-scrollbar-thumb {
+        background: rgba(148, 153, 160, 0.3);
+        border-radius: 4px;
+    }
+
+    & ::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 153, 160, 0.5);
+    }
 
     /* --- 3. 首页与信息流净化 --- */
     /* 隐藏：调色板、桌面端下载提示、固定频道头、广告卡片、轮播图、直播与单列卡片 */
@@ -287,10 +307,33 @@
     --graph_bg_thick: #232e3b !important;
 
     /* --- 2. 全局背景去色与暗化 --- */
-    &, & body, & #app, & #all-list, & .search-page-wrapper, & .space-wrap, & .bili-layout, & body > div:has(>.bili-feed4), & .history-wrap { 
-        background-color: #111820 !important; 
+    &,
+    & body,
+    & #app,
+    & #all-list,
+    & .search-page-wrapper,
+    & .space-wrap,
+    & .bili-layout,
+    & body>div:has(>.bili-feed4),
+    & .history-wrap {
+        background-color: #111820 !important;
     }
-    &, & body, & #app, & .bili-dyn-home--member { background-image: none !important; }
+
+    &,
+    & body,
+    & #app,
+    & .bili-dyn-home--member {
+        background-image: none !important;
+    }
+
+    /* 滚动条暗黑化 */
+    & ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    & ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
 
     /* --- 3. 视频卡片暗黑化 --- */
     .bili-video-card.is-rcmd > .bili-video-card__wrap { background-color: #1a232c !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; }
