@@ -59,7 +59,7 @@ class ConfigManager {
         if (!savedCfg) return defaultCfg;
 
         // 深度合并策略：保留用户设置，补充新增的默认字段
-        return {
+        const mergedConfig = {
             ...defaultCfg,
             ...savedCfg,
             cleanup: { ...defaultCfg.cleanup, ...(savedCfg.cleanup || {}) },
@@ -71,6 +71,11 @@ class ConfigManager {
             },
             version: savedCfg.version || defaultCfg.version
         };
+
+        // 清理已废弃的旧版本字段，防止幽灵数据残留并被导出
+        delete mergedConfig.ui.optimizeCdn;
+
+        return mergedConfig;
     }
 
     /**
