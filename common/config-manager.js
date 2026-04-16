@@ -29,6 +29,7 @@ class ConfigManager {
                 },
                 layoutOptimization: true,
                 hideRecommend: false,
+                hideHomeFeed: false, 
                 hideHotSearch: true,
                 videoInfoHover: true,
                 videoInfoHoverAi: true,

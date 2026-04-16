@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ui = config.ui;
         document.getElementById('ui-layout-opt').checked = ui.layoutOptimization;
         document.getElementById('ui-hide-recommend').checked = ui.hideRecommend ?? false;
+        document.getElementById('ui-hide-home-feed').checked = ui.hideHomeFeed ?? false; 
         document.getElementById('ui-hide-hot-search').checked = ui.hideHotSearch ?? false;
         document.getElementById('ui-video-info-hover').checked = ui.videoInfoHover ?? true;
         document.getElementById('ui-video-info-hover-ai').checked = ui.videoInfoHoverAi ?? true;
@@ -133,6 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         config.ui.layoutOptimization = document.getElementById('ui-layout-opt').checked;
         config.ui.hideRecommend = document.getElementById('ui-hide-recommend').checked;
+        config.ui.hideHomeFeed = document.getElementById('ui-hide-home-feed').checked; 
         config.ui.hideHotSearch = document.getElementById('ui-hide-hot-search').checked;
         config.ui.videoInfoHover = document.getElementById('ui-video-info-hover').checked;
         config.ui.videoInfoHoverAi = document.getElementById('ui-video-info-hover-ai').checked;
@@ -204,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 1. 绑定所有开关与输入框的 Change 事件
         const inputs =[
             'master-switch', 'cleanup-enabled', 'ui-layout-opt', 'ui-show-ip', 
-            'ui-hide-hot-search', 'ui-hide-recommend', 'ui-show-cover-viewer', 
+            'ui-hide-hot-search', 'ui-hide-recommend', 'ui-hide-home-feed', 'ui-show-cover-viewer', 
             'ui-video-info-hover', 'ui-video-info-hover-ai', 'ui-video-info-hover-reply', 
             'ui-user-info-hover', 'ui-video-info-delay', 'ui-night-mode-select', 
             'ui-night-start', 'ui-night-end', 'min-duration'
