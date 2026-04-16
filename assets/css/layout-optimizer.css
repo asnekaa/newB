@@ -111,13 +111,11 @@
     .bili-feed4 > .bili-header.large-header > .bili-header__channel > .right-channel-container > .channel-items__left > * { 
         background-color: #F0F7FC !important; box-shadow: 0 2px 8px rgba(0, 174, 236, 0.08); 
     }
-    /* 隐藏无用导航项（游戏中心、会员购、下载客户端等） */
-    .bili-feed4 > .bili-header.large-header > .bili-header__bar > ul.left-entry > li,
-    #biliMainHeader > div > div > ul.left-entry > li { 
-        &.left-loc-entry, 
-        &:has(> a[href*="game.bilibili.com"]), 
-        &:has(> a[href*="show.bilibili.com/platform/home.html"]), 
-        &:has(> a.download-client-trigger) { display: none; } 
+    /* 隐藏除“首页”外的所有左侧导航项（番剧、直播、漫画、赛事等） */
+    .bili-header__bar > ul.left-entry > li:not(:first-child),
+    #biliMainHeader ul.left-entry > li:not(:first-child),
+    .bili-header ul.left-entry > li:not(:first-child) { 
+        display: none !important; 
     }
 
     /* --- 7. 视频卡片悬浮与交互优化 --- */
