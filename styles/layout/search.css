@@ -20,6 +20,11 @@
         border-bottom: none !important;
     }
 
+    /* 必须清除父容器在滚动时自带的纯白背景，否则会阻挡子元素的半透明毛玻璃效果 */
+    body:has(.search-layout, .search-page-wrapper) .bili-header.fixed-header {
+        background-color: transparent !important;
+    }
+
     /* 搜索页顶栏吸顶时的毛玻璃效果 (增加对 .fixed-header 滚动状态的绝对拦截) */
     body:has(.search-layout, .search-page-wrapper) .bili-header.fixed-header .bili-header__bar,
     body:has(.search-layout, .search-page-wrapper) .bili-header.fixed-header .bili-header-m__bar,
