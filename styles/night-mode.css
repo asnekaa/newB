@@ -39,7 +39,6 @@
         background-image: none !important;
     }
 
-    /* 滚动条 Dark♂ 化 */
     & ::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.15);
     }
@@ -68,7 +67,6 @@
         background-color: #232e3b !important;
     }
 
-    /* 文本颜色适配 (标题、UP主、数据) */
     .bili-video-card__info--right>.bili-video-card__info--tit,
     .bili-video-card__info--tit,
     .video-list-item .title {
@@ -126,7 +124,6 @@
         background-color: #1a232c !important;
     }
 
-    /* 推荐列表卡片 */
     .next-play>div>.card-box,
     .rec-list>div>.card-box,
     #mirror-vdcon>.playlist-container--right>.recommend-list-container>div>.card-box {
@@ -140,7 +137,6 @@
         background-color: #232e3b !important;
     }
 
-    /* 播放页文本颜色 */
     .video-info-container .video-title,
     .up-info--right .up-name,
     .rec-list .title,
@@ -257,6 +253,9 @@
 
     .article-container .title-container .title,
     .read-article-holder .title,
+    .up-info-container .up-name,
+    .up-info-container .name,
+    .article-up-info .up-name,
     .article-content,
     .article-content p,
     .article-content h1,
@@ -269,19 +268,22 @@
         color: #e0e5ea !important;
     }
 
-    /* 避免覆盖带有自定义颜色的 span (如 UP 主特意标红的文字) */
+    .up-info-container .up-name:hover,
+    .up-info-container .name:hover,
+    .article-up-info .up-name:hover {
+        color: #00aeec !important;
+    }
+
     .article-content span:not([style*="color"]) {
         color: #e0e5ea !important;
     }
 
-    /* 引用块适配 */
     .article-content blockquote {
         background-color: #232e3b !important;
         border-left-color: #324052 !important;
         color: #8b96a5 !important;
     }
 
-    /* 次要信息文本弱化 */
     .article-content figure figcaption,
     .up-info-container .publish-text,
     .up-info-container .view-count,
