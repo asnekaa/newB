@@ -1,4 +1,4 @@
-/* --- 1. 悬浮窗基础容器 --- */
+/* --- 悬浮窗基础容器 --- */
 #newb-video-info-card {
   /* 定位与层级 */
   position: fixed;
@@ -32,7 +32,7 @@
     pointer-events: auto;
   }
 
-  /* --- 2. 骨架屏加载动画 (Skeleton UI) --- */
+  /* --- 骨架屏加载动画 --- */
   .newb-skeleton {
     background: linear-gradient(90deg, #f2f2f3 25%, #e3e5e7 37%, #f2f2f3 63%);
     background-size: 400% 100%;
@@ -323,7 +323,7 @@
   }
 }
 
-/* --- 4. 关键帧动画定义 (Keyframes) --- */
+/* --- 关键帧动画定义--- */
 @keyframes newb-skeleton-loading {
   0% {
     background-position: 100% 50%;
