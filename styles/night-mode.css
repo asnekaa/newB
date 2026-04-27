@@ -242,4 +242,50 @@
     .bili-user-profile-view a:hover {
         color: #00aeec !important;
     }
-}
+
+    /* --- 8. 专栏页 Dark♂ 化 --- */
+    .article-container,
+    .right-side-bar,
+    .read-article-holder,
+    .article-up-info,
+    .up-info-container,
+    .article-action {
+        background-color: #1a232c !important;
+        border-color: #232e3b !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .article-container .title-container .title,
+    .read-article-holder .title,
+    .article-content,
+    .article-content p,
+    .article-content h1,
+    .article-content h2,
+    .article-content h3,
+    .article-content h4,
+    .article-content h5,
+    .article-content h6,
+    .article-content li {
+        color: #e0e5ea !important;
+    }
+
+    /* 避免覆盖带有自定义颜色的 span (如 UP 主特意标红的文字) */
+    .article-content span:not([style*="color"]) {
+        color: #e0e5ea !important;
+    }
+
+    /* 引用块适配 */
+    .article-content blockquote {
+        background-color: #232e3b !important;
+        border-left-color: #324052 !important;
+        color: #8b96a5 !important;
+    }
+
+    /* 次要信息文本弱化 */
+    .article-content figure figcaption,
+    .up-info-container .publish-text,
+    .up-info-container .view-count,
+    .up-info-container .article-pts {
+        color: #8b96a5 !important;
+    }
+    }
