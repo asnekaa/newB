@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "newB - 让你的Bilibili焕然一新",
   "short_name": "newB",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "优化Bilibili使用体验。",
   "default_locale": "zh_CN",
   "author": "ASneka",
@@ -13,7 +13,7 @@
 
   "permissions": ["storage"],
 
-  "host_permissions": ["*://*.bilibili.com/*", "*://api.bilibili.com/*"],
+  "host_permissions": ["https://*.bilibili.com/*"],
 
   "action": {
     "default_icon": {
@@ -26,13 +26,13 @@
   "web_accessible_resources": [
     {
       "resources": ["assets/bililv.svg"],
-      "matches": ["*://*.bilibili.com/*"]
+      "matches": ["https://*.bilibili.com/*"]
     }
   ],
 
   "content_scripts": [
     {
-      "matches": ["*://*.bilibili.com/*"],
+      "matches": ["https://*.bilibili.com/*"],
       "css": [
         "styles/layout/global.css",
         "styles/layout/header.css",
@@ -61,7 +61,7 @@
       "run_at": "document_start"
     },
     {
-      "matches": ["*://*.bilibili.com/*"],
+      "matches": ["https://*.bilibili.com/*"],
       "js": ["inject/main-world-patch.js"],
       "run_at": "document_start",
       "world": "MAIN"
