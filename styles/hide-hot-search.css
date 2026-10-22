@@ -1,7 +1,19 @@
-/* 顶栏搜索框优化 */
+/* 动态页热搜卡片 (JS 按标题文字兜底定位) */
+.newb-hide-dyn-hot-search {
+  display: none !important;
+}
 :root.newb-hide-hot-search {
   /* 移除搜索面板中的热搜模块 */
   .search-panel .trending {
+    display: none !important;
+  }
+
+  /* 移除动态页右侧的「bilibili热搜」模块 */
+  .bili-dyn-topic-box,
+  .bili-dyn-search-trendings,
+  .bili-dyn-home--member .topic-panel,
+  .bili-dyn-home--member [class*="hot-search"],
+  .bili-dyn-home--member [class*="search-trending"] {
     display: none !important;
   }
 

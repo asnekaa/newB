@@ -146,6 +146,10 @@ class VideoInfoHoverEngine {
     this.hideTimer = null; // 触发隐藏的防抖定时器
     this.currentBvid = null; // 当前正在展示的视频 BV 号 (用于防御竞态条件)
     this.currentTarget = null; // 当前触发悬停的 DOM 节点
+    this.currentAnchor = null; // 悬停瞬间的定位锚点
+    this.hoverBvid = null; // 指针当前所在视频
+    this.pendingBvid = null; // 正在倒计时的视频
+    this.showToken = 0; // 请求/渲染代际，防止旧结果覆盖新卡片
 
     this.bindEvents();
   }
@@ -194,7 +198,10 @@ class VideoInfoHoverEngine {
             btn.innerHTML = isExpanded ? "收起 ▴" : "展开 ▾";
             // 展开后重新计算位置，防止内容撑破屏幕边界
             if (this.currentTarget)
-              this.positionCard(this.currentTarget.getBoundingClientRect());
+              this.positionCard(
+                this.currentAnchor ||
+                  this.currentTarget.getBoundingClientRect(),
+              );
           }
           return;
         }
@@ -438,10 +445,14 @@ class VideoInfoHoverEngine {
    * @param {HTMLElement} target - 触发 DOM 节点
    * @param {string} bvid - 视频 BV 号
    */
-  async showCardFor(target, bvid) {
+  async showCardFor(target, bvid, anchor = null) {
+    const showToken = ++this.showToken;
     this.currentBvid = bvid;
     this.currentTarget = target;
+    this.currentAnchor = anchor;
     const card = this.getCard();
+    // 使用悬停瞬间的锚点，避免列表异步重渲染后目标矩形失效
+    const anchorRect = anchor || target.getBoundingClientRect();
 
     // 预判标题行数：根据触发元素的文本长度（B站首页卡片标题通常超过24字会换行）
     const rawTitle = target.innerText || target.title || "";
@@ -465,14 +476,14 @@ class VideoInfoHoverEngine {
             ${skeletonAiHtml}
         `;
     card.classList.add("show");
-    this.positionCard(target.getBoundingClientRect());
+    this.positionCard(anchorRect);
 
     // 2. 异步获取数据
     try {
       const data = await window.newbAPI.fetchVideoInfo(bvid);
 
       // 竞态条件防御：若在请求期间用户移到了其他视频，则丢弃当前结果
-      if (this.currentBvid !== bvid) return;
+      if (this.currentBvid !== bvid || showToken !== this.showToken) return;
 
       // 3. 并行获取 AI 总结与热评数据 (根据开关状态决定是否发起请求)
       const aid = data.View.aid;
@@ -489,16 +500,16 @@ class VideoInfoHoverEngine {
           : Promise.resolve(null),
       ]);
 
-      if (this.currentBvid !== bvid) return;
+      if (this.currentBvid !== bvid || showToken !== this.showToken) return;
 
       data.Conclusion =
         conclusionRes.status === "fulfilled" ? conclusionRes.value : null;
       data.Reply = replyRes.status === "fulfilled" ? replyRes.value : null;
 
       this.renderCard(data);
-      this.positionCard(target.getBoundingClientRect());
+      this.positionCard(anchorRect);
     } catch (e) {
-      if (this.currentBvid === bvid) {
+      if (showToken === this.showToken) {
         card.innerHTML = `<div class="newb-hover-error">获取信息失败</div>`;
       }
     }
@@ -508,8 +519,11 @@ class VideoInfoHoverEngine {
    * 隐藏悬浮窗并清理状态
    */
   hideCard() {
+    this.showToken++; // 使进行中的请求与渲染失效
+    this.pendingBvid = null;
     this.card?.classList.remove("show");
     this.currentBvid = null;
+    this.currentAnchor = null;
   }
 
   /**
@@ -528,21 +542,31 @@ class VideoInfoHoverEngine {
         return;
 
       const match = target.href.match(/\/video\/(BV[a-zA-Z0-9]+)/);
-      if (!match) return;
+      if (!match) {
+        this.hoverBvid = null;
+        return;
+      }
 
       const bvid = match[1];
+      this.hoverBvid = bvid;
 
       // 若当前已在展示该视频，则取消隐藏动作
       clearTimeout(this.hideTimer);
       if (this.currentBvid === bvid && this.card?.classList.contains("show"))
         return;
 
+      // 同一个视频已在倒计时中时不要反复重置计时器
+      if (this.pendingBvid === bvid) return;
+
       // 启动触发倒计时
       clearTimeout(this.showTimer);
-      this.showTimer = setTimeout(
-        () => this.showCardFor(target, bvid),
-        this.config.delay,
-      );
+      this.pendingBvid = bvid;
+      const anchor = target.getBoundingClientRect();
+      this.showTimer = setTimeout(() => {
+        this.pendingBvid = null;
+        if (this.hoverBvid !== bvid) return;
+        this.showCardFor(target, bvid, anchor);
+      }, this.config.delay);
     });
 
     document.addEventListener("mouseout", (e) => {
@@ -555,6 +579,9 @@ class VideoInfoHoverEngine {
       )
         return;
       if (!target.href.match(/\/video\/(BV[a-zA-Z0-9]+)/)) return;
+
+      this.hoverBvid = null;
+      this.pendingBvid = null;
 
       // 取消显示动作，启动隐藏倒计时
       clearTimeout(this.showTimer);

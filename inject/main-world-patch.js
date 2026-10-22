@@ -6,8 +6,6 @@
   const isShowIpEnabled = () =>
     isMasterOn() && localStorage.getItem("newb_show_ip") === "true";
 
-  console.log("newB: Main World Patch Initializing...");
-
   /* ==========================================
    * Fetch & XHR 网络拦截器 (净化与防遥测)
    * ========================================== */
@@ -29,26 +27,36 @@
     }
 
     if (urlStr.includes(FEED_API)) {
+      let response = null;
+
       try {
-        const response = await originalFetch(input, init);
+        response = await originalFetch(input, init);
         const clone = response.clone();
         const json = await clone.json();
 
-        if (json.data?.item) {
+        if (Array.isArray(json.data?.item)) {
           json.data.item = json.data.item.filter(
             (item) =>
               !["ad", "live"].includes(item.goto) &&
               item.card_type !== "ad_web_s",
           );
+
+          // 过滤后正文长度和编码已变化，不能再沿用原响应头
+          const headers = new Headers(response.headers);
+          headers.delete("content-length");
+          headers.delete("content-encoding");
+          headers.set("content-type", "application/json; charset=utf-8");
+
           return new Response(JSON.stringify(json), {
             status: response.status,
             statusText: response.statusText,
-            headers: response.headers,
+            headers,
           });
         }
         return response;
       } catch (e) {
-        return originalFetch(input, init);
+        // 首次请求已成功时直接返回原响应，避免重复请求接口
+        return response || originalFetch(input, init);
       }
     }
     return originalFetch(input, init);

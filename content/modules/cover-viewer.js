@@ -21,6 +21,7 @@ class CoverViewerEngine {
   start() {
     if (!this.timer) {
       this.timer = setInterval(() => this.scan(), 2000);
+      this.scan();
     }
   }
 
@@ -68,7 +69,10 @@ class CoverViewerEngine {
         if (!aid || !cid) {
           try {
             const videoInfo = await window.newbAPI.fetchVideoInfo(bvid);
-            if (!videoInfo?.View) continue;
+            if (!videoInfo?.View) {
+              statElement.dataset.newbCvTs = Date.now(); // 失败冷却，避免高频重试
+              continue;
+            }
 
             aid = videoInfo.View.aid;
             cid = videoInfo.View.cid;
@@ -76,6 +80,7 @@ class CoverViewerEngine {
             statElement.dataset.newbCid = cid;
           } catch (e) {
             if (e.message === "412_BANNED") return this.forcedClose();
+            statElement.dataset.newbCvTs = Date.now();
             continue;
           }
         }
@@ -106,6 +111,7 @@ class CoverViewerEngine {
           statElement.dataset.newbCvTs = Date.now();
         } catch (e) {
           if (e.message === "412_BANNED") return this.forcedClose();
+          statElement.dataset.newbCvTs = Date.now(); // 失败冷却，避免频繁请求
         }
       }
     } finally {

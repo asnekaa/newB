@@ -11,19 +11,6 @@ class ConfigManager {
         hideLive: true,
         hideAds: true,
       },
-      filter: {
-        enabled: true,
-        durationEnabled: true,
-        minDuration: 0,
-        titleEnabled: true,
-        titleKeywords: [],
-        upEnabled: true,
-        upKeywords: [],
-        sectionEnabled: true,
-        sectionKeywords: [],
-        tagEnabled: true,
-        tagKeywords: [],
-      },
       ui: {
         nightMode: {
           enabled: true,
@@ -50,40 +37,63 @@ class ConfigManager {
   }
 
   /**
+   * 深度合并配置：只保留默认配置中存在的键，避免旧版/损坏配置污染运行时
+   * @param {Object} base - 默认配置
+   * @param {Object} target - 待合并配置
+   * @returns {Object} 合并后的配置
+   */
+  mergeConfig(base, target) {
+    if (!target || typeof target !== "object" || Array.isArray(target)) {
+      return base;
+    }
+
+    const result = { ...base };
+
+    for (const key of Object.keys(target)) {
+      if (!Object.prototype.hasOwnProperty.call(base, key)) continue;
+
+      const baseValue = base[key];
+      const targetValue = target[key];
+      const bothPlainObjects =
+        baseValue &&
+        typeof baseValue === "object" &&
+        !Array.isArray(baseValue) &&
+        targetValue &&
+        typeof targetValue === "object" &&
+        !Array.isArray(targetValue);
+
+      result[key] = bothPlainObjects
+        ? this.mergeConfig(baseValue, targetValue)
+        : targetValue;
+    }
+
+    return result;
+  }
+
+  /**
+   * 将任意配置对象规范化为完整的默认配置结构
+   * @param {Object} config - 待规范化的配置
+   * @returns {Object} 完整配置
+   */
+  normalizeConfig(config) {
+    const defaults = JSON.parse(JSON.stringify(this.defaultConfig));
+
+    if (!config || typeof config !== "object" || Array.isArray(config)) {
+      return defaults;
+    }
+
+    const merged = this.mergeConfig(defaults, config);
+    merged.version = config.version || defaults.version;
+    return merged;
+  }
+
+  /**
    * 加载本地配置并与默认配置进行深度合并
    * @returns {Promise<Object>} 合并后的完整配置对象
    */
   async loadConfig() {
     const res = await chrome.storage.local.get(this.configKey);
-    const defaultCfg = JSON.parse(JSON.stringify(this.defaultConfig));
-    const savedCfg = res[this.configKey];
-
-    if (!savedCfg) return defaultCfg;
-
-    const mergeValidKeys = (base, target) => {
-      const result = { ...base };
-      for (const key in target) {
-        if (Object.prototype.hasOwnProperty.call(base, key)) {
-          if (
-            typeof target[key] === "object" &&
-            target[key] !== null &&
-            !Array.isArray(target[key])
-          ) {
-            result[key] = mergeValidKeys(base[key], target[key]);
-          } else {
-            result[key] = target[key];
-          }
-        }
-      }
-      return result;
-    };
-
-    const mergedConfig = mergeValidKeys(defaultCfg, savedCfg);
-
-    // 独立处理版本号逻辑
-    mergedConfig.version = savedCfg.version || defaultCfg.version;
-
-    return mergedConfig;
+    return this.normalizeConfig(res[this.configKey]);
   }
 
   /**
@@ -121,8 +131,9 @@ class ConfigManager {
       const cloudConfig = res[this.cloudKey];
 
       if (cloudConfig) {
-        await chrome.storage.local.set({ [this.configKey]: cloudConfig });
-        return { success: true, config: cloudConfig };
+        const config = this.normalizeConfig(cloudConfig);
+        await chrome.storage.local.set({ [this.configKey]: config });
+        return { success: true, config };
       }
       return { success: false, error: "云端未找到备份数据" };
     } catch (e) {
@@ -145,8 +156,8 @@ class ConfigManager {
     a.download = `newB_config_${Date.now()}.json`;
     a.click();
 
-    // 释放内存
-    URL.revokeObjectURL(url);
+    // 延迟释放，避免部分浏览器在下载开始前就取消 Blob URL
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   /**
@@ -160,10 +171,12 @@ class ConfigManager {
 
       reader.onload = async (e) => {
         try {
-          const config = JSON.parse(e.target.result);
-          if (typeof config !== "object" || !config)
+          const raw = JSON.parse(e.target.result);
+          if (typeof raw !== "object" || !raw) {
             throw new Error("Invalid Format");
+          }
 
+          const config = this.normalizeConfig(raw);
           await this.saveLocal(config);
           resolve(config);
         } catch (err) {

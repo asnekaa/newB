@@ -3,22 +3,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   let config = await configManager.loadConfig();
 
   /**
-   * 初始化应用状态 (恢复上次打开的 Tab)
+   * 初始化应用
    */
-  const init = async () => {
-    const { lastTabId } = await chrome.storage.local.get("lastTabId");
-    if (lastTabId) {
-      const targetTab = document.querySelector(
-        `.nav-links li[data-target="${lastTabId}"]`,
-      );
-      if (targetTab) {
-        document
-          .querySelectorAll(".nav-links li, .tab-pane")
-          .forEach((el) => el.classList.remove("active"));
-        targetTab.classList.add("active");
-        document.getElementById(lastTabId)?.classList.add("active");
-      }
-    }
+  const init = () => {
+    chrome.storage.local.remove("blockedLogs"); // 清理旧版本遗留的拦截日志
     renderAll();
     bindEvents();
   };
@@ -31,19 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("master-switch").checked =
       config.masterSwitch ?? true;
     document.getElementById("cleanup-enabled").checked = config.cleanup.enabled;
-    document.getElementById("min-duration").value = config.filter.minDuration;
-
-    // 渲染过滤子项开关 (兼容旧版配置，默认开启)
-    document.getElementById("duration-enabled").checked =
-      config.filter.durationEnabled ?? true;
-    document.getElementById("title-enabled").checked =
-      config.filter.titleEnabled ?? true;
-    document.getElementById("up-enabled").checked =
-      config.filter.upEnabled ?? true;
-    document.getElementById("section-enabled").checked =
-      config.filter.sectionEnabled ?? true;
-    document.getElementById("tag-enabled").checked =
-      config.filter.tagEnabled ?? true;
 
     // 2. UI 增强开关渲染
     const ui = config.ui;
@@ -142,30 +117,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     else if (mode === "custom") isDarkTime = isTimeInRange(nm.start, nm.end);
 
     document.body.classList.toggle("dark-mode", mode !== "off" && isDarkTime);
-
-    // 4. 关键词标签渲染
-    const renderTags = (containerId, list, type) => {
-      const container = document.getElementById(containerId);
-      container.innerHTML = list
-        .map(
-          (word) => `
-                <div class="tag">${word}<span class="tag-remove" data-type="${type}" data-word="${word}">×</span></div>
-            `,
-        )
-        .join("");
-    };
-
-    renderTags("title-tags", config.filter.titleKeywords, "titleKeywords");
-    renderTags("up-tags", config.filter.upKeywords, "upKeywords");
-    renderTags(
-      "section-tags",
-      config.filter.sectionKeywords,
-      "sectionKeywords",
-    );
-    renderTags("tag-tags", config.filter.tagKeywords || [], "tagKeywords");
-
-    // 5. 渲染拦截日志
-    renderLogs();
   };
 
   /**
@@ -187,18 +138,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     config.masterSwitch = document.getElementById("master-switch").checked;
-    config.filter.minDuration =
-      parseFloat(document.getElementById("min-duration").value) || 0;
     config.ui.infoHoverDelay =
       parseInt(document.getElementById("ui-video-info-delay").value) || 500;
 
     // 经过拦截器处理的开关状态
     config.cleanup.enabled = getVal("cleanup-enabled");
-    config.filter.durationEnabled = getVal("duration-enabled");
-    config.filter.titleEnabled = getVal("title-enabled");
-    config.filter.upEnabled = getVal("up-enabled");
-    config.filter.sectionEnabled = getVal("section-enabled");
-    config.filter.tagEnabled = getVal("tag-enabled");
 
     config.ui.layoutOptimization = getVal("ui-layout-opt");
     config.ui.hideHotSearch = getVal("ui-hide-hot-search");
@@ -236,50 +180,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   /**
-   * 渲染拦截日志列表
-   */
-  const renderLogs = () => {
-    chrome.storage.local.get({ blockedLogs: [] }, (data) => {
-      const listEl = document.getElementById("log-list");
-      if (data.blockedLogs.length === 0) {
-        listEl.innerHTML = '<div class="empty-log">暂无拦截记录</div>';
-        return;
-      }
-
-      listEl.innerHTML = data.blockedLogs
-        .map((log) => {
-          // 安全校验：防止 XSS 与非法协议跳转
-          const isValidUrl = (url) =>
-            url && url !== "#" && !url.startsWith("javascript:");
-
-          const titleHtml = isValidUrl(log.videoUrl)
-            ? `<a class="log-title-link" href="${log.videoUrl}" target="_blank">${log.title}</a>`
-            : `<span class="log-title-link no-link">${log.title}</span>`;
-
-          let upHtml = "";
-          if (log.up) {
-            const upLinkHtml = isValidUrl(log.upUrl)
-              ? `<a class="log-up-link" href="${log.upUrl}" target="_blank">${log.up}</a>`
-              : `<span class="log-up-link no-link">${log.up}</span>`;
-            upHtml = `<div class="log-up">UP: ${upLinkHtml}</div>`;
-          }
-
-          return `
-                    <div class="log-item">
-                        <div class="log-meta">
-                            <span class="log-tag">${log.type}: ${log.reason}</span>
-                            <span class="log-time">${new Date(log.time).toLocaleTimeString()}</span>
-                        </div>
-                        ${titleHtml}
-                        ${upHtml}
-                    </div>
-                `;
-        })
-        .join("");
-    });
-  };
-
-  /**
    * 绑定所有 DOM 事件
    */
   const bindEvents = () => {
@@ -287,12 +187,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputs = [
       "master-switch",
       "cleanup-enabled",
-      "duration-enabled",
-      "min-duration",
-      "title-enabled",
-      "up-enabled",
-      "section-enabled",
-      "tag-enabled",
       "ui-night-mode-select",
       "ui-night-start",
       "ui-night-end",
@@ -314,61 +208,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) el.addEventListener("change", saveAndRefresh);
     });
 
-    // 2. Tab 切换逻辑
-    document.querySelectorAll(".nav-links li").forEach((li) => {
-      li.addEventListener("click", () => {
-        const targetId = li.dataset.target;
-        document
-          .querySelectorAll(".nav-links li, .tab-pane")
-          .forEach((el) => el.classList.remove("active"));
-        li.classList.add("active");
-        document.getElementById(targetId)?.classList.add("active");
-        chrome.storage.local.set({ lastTabId: targetId });
-      });
-    });
-
-    // 3. 关键词添加逻辑封装
-    const setupAdd = (prefix, type) => {
-      const input = document.getElementById(`${prefix}-input`);
-      const btn = document.getElementById(`${prefix}-add`);
-      if (!input || !btn) return;
-
-      const addKeyword = async () => {
-        const val = input.value.trim();
-        config.filter[type] = config.filter[type] || [];
-        if (val && !config.filter[type].includes(val)) {
-          config.filter[type].push(val);
-          await saveAndRefresh();
-          input.value = "";
-        }
-      };
-
-      btn.addEventListener("click", addKeyword);
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") addKeyword();
-      });
-    };
-
-    setupAdd("title", "titleKeywords");
-    setupAdd("up", "upKeywords");
-    setupAdd("section", "sectionKeywords");
-    setupAdd("tag", "tagKeywords");
-
-    // 4. 关键词删除逻辑 (事件委托)
-    document.body.addEventListener("click", async (e) => {
-      if (e.target.classList.contains("tag-remove")) {
-        const { type, word } = e.target.dataset;
-        config.filter[type] = config.filter[type].filter((w) => w !== word);
-        await saveAndRefresh();
-      }
-    });
-
-    // 5. 日志清理
-    document.getElementById("clear-logs").addEventListener("click", () => {
-      chrome.storage.local.set({ blockedLogs: [] }, renderLogs);
-    });
-
-    // 6. 云端同步与导入导出
+    // 2. 云端同步与导入导出
     document
       .getElementById("btn-upload")
       .addEventListener("click", async (e) => {
@@ -404,39 +244,35 @@ document.addEventListener("DOMContentLoaded", async () => {
       .getElementById("btn-import-trigger")
       .addEventListener("click", () => fileInput.click());
     fileInput.addEventListener("change", async (e) => {
-      if (e.target.files[0]) {
-        config = await configManager.importJSON(e.target.files[0]);
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        config = await configManager.importJSON(file);
         renderAll();
         alert("导入成功！");
+      } catch (err) {
+        alert(err.message || "导入失败");
+      } finally {
+        // 允许重复选择同一个文件
+        fileInput.value = "";
       }
     });
 
-    // 7. 监听 Storage 变化，实现日志实时更新
-    chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === "local" && changes.blockedLogs) renderLogs();
-    });
-
-    // 8. 监听系统主题变化 (实时更新 Popup 自身主题)
+    // 3. 监听系统主题变化 (实时更新 Popup 自身主题)
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", () => {
         if (config.ui?.nightMode?.followSystem) renderAll();
       });
 
-    // 9. 好van的逻辑 (独立于常规 inputs 监听)
+    // 4. 好van的逻辑 (独立于常规 inputs 监听)
     const haoVanDeToggle = document.getElementById("ui-hao-van-de");
     const haoVanDeModal = document.getElementById("hao-van-de-modal");
 
-    // 定义两个独立的隔离区，防止跨区错位
-    const filterSwitches = [
+    // 参与错位的开关列表
+    const switchIds = [
       "cleanup-enabled",
-      "duration-enabled",
-      "title-enabled",
-      "up-enabled",
-      "section-enabled",
-      "tag-enabled",
-    ];
-    const uiSwitches = [
       "ui-layout-opt",
       "ui-hide-hot-search",
       "ui-hide-recommend",
@@ -463,10 +299,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 生成随机映射字典
     const generateMap = () => {
       const map = {};
-      const shuffledFilter = shuffleArray(filterSwitches);
-      const shuffledUI = shuffleArray(uiSwitches);
-      filterSwitches.forEach((id, index) => (map[id] = shuffledFilter[index]));
-      uiSwitches.forEach((id, index) => (map[id] = shuffledUI[index]));
+      const shuffled = shuffleArray(switchIds);
+      switchIds.forEach((id, index) => (map[id] = shuffled[index]));
       return map;
     };
 

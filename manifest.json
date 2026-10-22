@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "newB - 让你的Bilibili焕然一新",
   "short_name": "newB",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "优化Bilibili使用体验。",
   "default_locale": "zh_CN",
   "author": "ASneka",
@@ -54,7 +54,6 @@
         "content/core/main.js",
         "content/modules/cleanup-engine.js",
         "content/modules/cover-viewer.js",
-        "content/modules/filter-engine.js",
         "content/modules/user-info-hover.js",
         "content/modules/video-info-hover.js"
       ],

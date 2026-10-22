@@ -19,6 +19,8 @@ class UIEngine {
 
     this.currentNightModeConfig = null; // 缓存 Dark♂ 模式配置
     this.systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    this.dynHotSearchObserver = null; // 动态页热搜兜底观察器
+    this.dynHotSearchTimer = null;
 
     // 监听系统主题变化，实现无缝实时切换
     this.systemThemeQuery.addEventListener("change", (e) => {
@@ -94,6 +96,9 @@ class UIEngine {
     root.classList.toggle("newb-hide-home-feed", isHideHomeFeed);
     root.classList.toggle("newb-user-info-hover-enabled", isUserInfoHover);
 
+    // 动态页右侧的「bilibili热搜」类名不固定，额外按标题文字兜底隐藏
+    this.applyDynamicHotSearch(isHideHotSearch);
+
     // 4.  Dark♂ 模式调度与主题锁定
     this.currentNightModeConfig = nm;
 
@@ -105,6 +110,151 @@ class UIEngine {
     }
 
     this.applyNightMode(isDarkTime);
+  }
+
+  /**
+   * 隐藏动态页右侧的「bilibili热搜」模块
+   * B 站该模块的类名会随版本变化，这里按标题文字定位并隐藏整张卡片，
+   * 同时避免误伤顶栏搜索面板中的热搜
+   * @param {boolean} enabled - 是否启用
+   */
+  applyDynamicHotSearch(enabled) {
+    const MARK = "newb-hide-dyn-hot-search";
+    const isDynamicPage =
+      location.hostname === "t.bilibili.com" ||
+      location.pathname.includes("/dynamic") ||
+      location.pathname.startsWith("/opus/");
+
+    const restore = () => {
+      document.querySelectorAll(`.${MARK}`).forEach((el) => {
+        el.classList.remove(MARK);
+      });
+    };
+
+    clearTimeout(this.dynHotSearchTimer);
+
+    if (!enabled || !isDynamicPage) {
+      restore();
+      this.dynHotSearchObserver?.disconnect();
+      this.dynHotSearchObserver = null;
+      return;
+    }
+
+    /**
+     * 从热搜标题元素向上寻找整张卡片容器
+     */
+    const findCard = (el) => {
+      let node = el;
+      let fallback = null;
+
+      while (node && node !== document.body) {
+        const cls = typeof node.className === "string" ? node.className : "";
+        const isBoundary =
+          node.tagName === "ASIDE" ||
+          node.classList.contains("bili-dyn-home--member") ||
+          node.classList.contains("right-sidebar-wrap");
+
+        if (node.tagName === "SECTION") return node;
+        if (!fallback && /(box|card|panel|module|topic)/i.test(cls)) {
+          fallback = node;
+        }
+        if (isBoundary) break;
+        node = node.parentElement;
+      }
+
+      return fallback || el.parentElement?.parentElement || el.parentElement;
+    };
+
+    /**
+     * 确认标题位于页面右半侧，排除顶栏搜索面板
+     */
+    const isRightSideTitle = (el) => {
+      if (
+        el.closest(
+          "#nav-searchform, .search-panel, .center-search__bar, .bili-header, bili-header",
+        )
+      ) {
+        return false;
+      }
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.left > window.innerWidth / 2;
+    };
+
+    const hideCard = (titleEl) => {
+      if (!titleEl || !isRightSideTitle(titleEl)) return;
+
+      const card = findCard(titleEl);
+      if (!card || card.classList.contains(MARK)) return;
+
+      const rect = card.getBoundingClientRect();
+      const textLength = (card.textContent || "").length;
+
+      // 防止把整个右栏或页面容器误判为热搜卡片
+      if (
+        rect.width > 600 ||
+        rect.width > window.innerWidth * 0.5 ||
+        rect.height > window.innerHeight * 0.95 ||
+        textLength > 2000
+      ) {
+        return;
+      }
+
+      card.classList.add(MARK);
+    };
+
+    const scan = () => {
+      if (!document.body) return;
+      if (document.querySelector(`.${MARK}`)?.isConnected) return;
+
+      // 已通过类名规则命中，无需文字兜底
+      if (
+        document.querySelector(
+          ".bili-dyn-topic-box, .bili-dyn-search-trendings",
+        )
+      ) {
+        return;
+      }
+
+      if (!document.body.textContent.includes("bilibili热搜")) return;
+
+      let scopes = document.querySelectorAll(
+        "aside.right, .right-sidebar-wrap, .bili-dyn-home--member",
+      );
+      if (!scopes.length) scopes = [document.body];
+
+      scopes.forEach((scope) => {
+        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          const text = (node.nodeValue || "").replace(/\s+/g, "");
+          if (!/^bilibili热搜/i.test(text)) continue;
+          hideCard(node.parentElement);
+        }
+
+        scope
+          .querySelectorAll(
+            'img[alt*="热搜"], [title*="热搜"], [aria-label*="热搜"]',
+          )
+          .forEach(hideCard);
+      });
+    };
+
+    const schedule = () => {
+      clearTimeout(this.dynHotSearchTimer);
+      this.dynHotSearchTimer = setTimeout(scan, 300);
+    };
+
+    scan();
+
+    if (!this.dynHotSearchObserver) {
+      this.dynHotSearchObserver = new MutationObserver((mutations) => {
+        if (mutations.some((m) => m.addedNodes.length > 0)) schedule();
+      });
+      this.dynHotSearchObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    }
   }
 
   /**
