@@ -369,10 +369,10 @@ class VideoInfoHoverEngine {
           (replies && replies.length > 0
             ? replies.reduce((l, r) => ((l.like || 0) > (r.like || 0) ? l : r))
             : null);
-        if (hotComment) {
-          const member = hotComment.member;
+        if (hotComment && hotComment.content) {
+          const member = hotComment.member || { uname: "匿名用户" };
           const content = hotComment.content;
-          let message = content.message;
+          let message = content.message || "";
 
           if (content.emote) {
             for (const [key, emote] of Object.entries(content.emote)) {
@@ -571,7 +571,11 @@ class VideoInfoHoverEngine {
     this.positionCard(anchorRect);
 
     try {
-      const data = { ...(await this.fetchInfoCached(bvid)) };
+      const data = {
+        ...(await this.fetchInfoCached(bvid)),
+        Conclusion: null,
+        Reply: null,
+      };
 
       if (this.currentBvid !== bvid || showToken !== this.showToken) return;
 
