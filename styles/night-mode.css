@@ -16,6 +16,12 @@
   --line_light: #1a232c !important;
   --graph_bg_regular: #1a232c !important;
   --graph_bg_thick: #232e3b !important;
+  --newb-page-bg: #111820 !important;
+  --newb-bar-bg: #1a232c !important;
+  --newb-soft-bg: #232e3b !important;
+  --newb-hover-bg: #232e3b !important;
+  --newb-dim-text: rgba(224, 229, 234, 0.45) !important;
+  --newb-video-ph: rgba(255, 255, 255, 0.08) !important;
 
   &,
   & body,

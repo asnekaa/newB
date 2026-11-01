@@ -522,6 +522,10 @@
     border-color: rgba(255, 255, 255, 0.08);
   }
 
+  .newb-reply-pic {
+    background: #232e3b;
+  }
+
   .newb-hover-dur {
     background: rgba(255, 255, 255, 0.08);
     color: #a0abb8;

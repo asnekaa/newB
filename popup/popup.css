@@ -180,7 +180,7 @@ input[type="time"] {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--switch-track, #ccc);
     transition: 0.3s;
     border-radius: 18px;
 
@@ -230,7 +230,22 @@ body.dark-mode {
   --text-main: #e0e5ea;
   --text-sub: #8b96a5;
   --border: #232e3b;
+  --switch-track: #324052;
+  color-scheme: dark;
   background-color: var(--bg-color);
+
+  .content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 3px;
+  }
+
+  .content::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
   .topbar {
     background: #1a232c;

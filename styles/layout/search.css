@@ -1,7 +1,7 @@
 :root.newb-optimized-layout {
   .search-layout,
   .search-page-wrapper {
-    background-color: #e4f1f9 !important;
+    background-color: var(--newb-page-bg, #e4f1f9) !important;
   }
 
   .search-header {
@@ -10,7 +10,7 @@
 
   body:has(.search-layout, .search-page-wrapper) .bili-header__bar,
   body:has(.search-layout, .search-page-wrapper) .bili-header-m__bar {
-    background-color: #e4f1f9 !important;
+    background-color: var(--newb-page-bg, #e4f1f9) !important;
     box-shadow: 0 2px 8px rgba(0, 174, 236, 0.08) !important;
     border-bottom: none !important;
   }
@@ -36,7 +36,7 @@
   .video-list-item,
   .search-all-list .bili-video-card__wrap,
   .search-page-video-card {
-    background-color: #f0f7fc !important;
+    background-color: var(--newb-bar-bg, #f0f7fc) !important;
     box-shadow: 0 4px 12px rgba(0, 174, 236, 0.1) !important;
     border-radius: 13px !important;
     overflow: hidden;
@@ -48,7 +48,7 @@
   .search-all-list .bili-video-card__wrap:hover,
   .search-page-video-card:hover {
     box-shadow: 0 8px 24px rgba(0, 174, 236, 0.25) !important;
-    background-color: #e8f4fd !important;
+    background-color: var(--newb-hover-bg, #e8f4fd) !important;
     transform: translateY(-2px);
   }
 

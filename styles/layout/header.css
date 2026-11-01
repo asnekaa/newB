@@ -19,7 +19,7 @@
     > .right-channel-container
     > .channel-items__left
     > * {
-    background-color: #f0f7fc !important;
+    background-color: var(--newb-bar-bg, #f0f7fc) !important;
     box-shadow: 0 2px 8px rgba(0, 174, 236, 0.08);
   }
 }

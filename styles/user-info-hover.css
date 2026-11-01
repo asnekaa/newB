@@ -358,6 +358,19 @@
   color: #a0abb8;
 }
 
+:root.newb-night-mode .btn-followed:hover {
+  background: #2b3846;
+}
+
+:root.newb-night-mode .btn-block:hover {
+  background: rgba(251, 114, 153, 0.15);
+}
+
+:root.newb-night-mode .btn-disabled {
+  background: #232e3b;
+  color: #61666d;
+}
+
 :root.newb-night-mode .newb-skeleton {
   background: linear-gradient(90deg, #232e3b 25%, #324052 37%, #232e3b 63%);
   background-size: 400% 100%;

@@ -66,7 +66,7 @@
   }
 
   .bili-video-card.is-rcmd > .bili-video-card__wrap {
-    background-color: #f0f7fc !important;
+    background-color: var(--newb-bar-bg, #f0f7fc) !important;
     box-shadow: 0 4px 12px rgba(0, 174, 236, 0.1) !important;
     border-radius: 13px;
     overflow: hidden;
@@ -75,7 +75,7 @@
 
   .bili-video-card.is-rcmd > .bili-video-card__wrap:hover {
     box-shadow: 0 8px 24px rgba(0, 174, 236, 0.25) !important;
-    background-color: #e8f4fd !important;
+    background-color: var(--newb-hover-bg, #e8f4fd) !important;
     transform: translateY(-2px);
   }
 
@@ -97,14 +97,14 @@
     > div
     > div.bpx-player-primary-area
     > div.bpx-player-video-area {
-    background-color: rgb(196 207 199 / 60%);
+    background-color: var(--newb-video-ph, rgb(196 207 199 / 60%));
   }
 
   .bili-video-card__wrap
     > .bili-video-card__info
     > .bili-video-card__info--right
     > .bili-video-card__info--bottom {
-    color: #00000063 !important;
+    color: var(--newb-dim-text, #00000063) !important;
   }
 
   a.channel-link {

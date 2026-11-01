@@ -36,7 +36,7 @@
   & .bili-layout,
   & body > div:has(> .bili-feed4),
   & .history-wrap {
-    background-color: #e4f1f9 !important;
+    background-color: var(--newb-page-bg, #e4f1f9) !important;
   }
 
   .search-header,
