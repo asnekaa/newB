@@ -10,7 +10,8 @@
           "path": "manifest.json",
           "jsonpath": "$.version"
         }
-      ]
+      ],
+      "bump-patch-for-minor-pre-major": true
     }
   }
 }
