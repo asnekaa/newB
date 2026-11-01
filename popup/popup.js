@@ -38,6 +38,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       ui.showCoverViewer ?? false;
     document.getElementById("ui-hao-van-de").checked = ui.haoVanDe ?? false;
 
+    document.getElementById("app-version").textContent = `v${chrome.runtime.getManifest().version}`;
+
     const nm = ui.darkMode || {
       enabled: true,
       followSystem: true,

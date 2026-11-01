@@ -45,6 +45,15 @@ body {
     font-size: 18px;
     font-weight: bold;
     color: var(--bili-blue);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .version {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-sub);
   }
 
   .master-control {
