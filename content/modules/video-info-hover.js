@@ -464,6 +464,14 @@ class VideoInfoHoverEngine {
     const durationHtml = view.duration
       ? `<span class="newb-hover-dur">${this.formatSeconds(view.duration)}</span>`
       : "";
+    const pageCount =
+      Number(view.videos) ||
+      (Array.isArray(view.pages) ? view.pages.length : 0) ||
+      0;
+    const pagesHtml =
+      pageCount > 1
+        ? `<span class="newb-hover-pages">共 ${pageCount} P</span>`
+        : "";
 
     const card = this.getCard();
     card.innerHTML = `
@@ -476,6 +484,7 @@ class VideoInfoHoverEngine {
                             <span class="newb-hover-up">${upName}</span>
                             <span class="newb-hover-time">${timeStr}</span>
                             ${durationHtml}
+                            ${pagesHtml}
                         </div>
                     </div>
                 </div>
