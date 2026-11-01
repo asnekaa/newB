@@ -28,13 +28,43 @@ try {
 } catch {
   lastTag = "v0.0.0";
 }
+const sinceArg = args.find((a) => a.startsWith("--since="));
+if (sinceArg) lastTag = sinceArg.split("=")[1];
 
-let subjects = [];
+const RELEASE_ONLY = /^(chore\(release\)|chore:\s*\d+\.\d+\.\d+)\b/i;
+
+let commits = [];
 try {
-  subjects = git("log", `${lastTag}..HEAD`, "--pretty=%s").split("\n").filter(Boolean);
+  const raw = git("log", `${lastTag}..HEAD`, "--pretty=format:%H%x09%s%x09%b%x1e");
+  commits = raw
+    .split("\x1e")
+    .map((chunk) => chunk.trim())
+    .filter(Boolean)
+    .map((chunk) => {
+      const [sha, subject, ...rest] = chunk.split("\t");
+      return { sha, subject, body: rest.join("\t") };
+    });
 } catch {
-  subjects = [];
+  commits = [];
 }
+
+const revertedShas = new Set();
+for (const commit of commits) {
+  if (!/^Revert\s/i.test(commit.subject)) continue;
+  for (const match of commit.body.matchAll(/This reverts commit ([0-9a-f]{7,40})/gi)) {
+    revertedShas.add(match[1]);
+  }
+}
+
+const effective = commits.filter((commit) => {
+  if (revertedShas.has(commit.sha)) return false;
+  if (commit.sha && [...revertedShas].some((sha) => sha.startsWith(commit.sha.slice(0, 7)))) return false;
+  if (/^Revert\s/i.test(commit.subject)) return false;
+  if (RELEASE_ONLY.test(commit.subject)) return false;
+  return true;
+});
+
+const subjects = effective.map((commit) => commit.subject);
 
 const hasBreaking = subjects.some((s) => /^[a-z]+(\(.+\))?!:/.test(s) || /BREAKING CHANGE/.test(s));
 const hasFeat = subjects.some((s) => /^feat(\(.+\))?:/.test(s));
@@ -63,18 +93,14 @@ const next =
       ? `${major}.${minor + 1}.0`
       : `${major}.${minor}.${patch + 1}`;
 
-const groups = { feat: [], fix: [], other: [] };
+const groups = { feat: [], fix: [] };
 for (const subject of subjects) {
   const match = subject.match(/^([a-z]+)(\(.+\))?(!)?:\s*(.+)$/);
-  if (!match) {
-    groups.other.push(subject);
-    continue;
-  }
+  if (!match) continue;
   const [, type, scope, mark, text] = match;
   const line = `- ${scope ? `**${scope.slice(1, -1)}**: ` : ""}${text}${mark ? " ⚠️ BREAKING" : ""}`;
   if (type === "feat") groups.feat.push(line);
   else if (type === "fix") groups.fix.push(line);
-  else groups.other.push(`- ${type}: ${text}`);
 }
 
 const date = new Date().toISOString().slice(0, 10);
@@ -83,7 +109,6 @@ const section = [
   "",
   groups.feat.length ? `### 新增\n\n${groups.feat.join("\n")}` : "",
   groups.fix.length ? `### 修复\n\n${groups.fix.join("\n")}` : "",
-  groups.other.length ? `### 其他\n\n${groups.other.join("\n")}` : "",
 ]
   .filter(Boolean)
   .join("\n\n");
