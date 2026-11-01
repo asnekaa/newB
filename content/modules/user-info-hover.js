@@ -10,29 +10,20 @@ class UserInfoHoverEngine {
     this.bindEvents();
   }
 
-  /**
-   * 更新引擎配置
-   * @param {Object} config - 全局配置对象
-   */
   updateConfig(config) {
     const isMasterOn = config.masterSwitch ?? true;
     this.config.enabled = isMasterOn && (config.ui?.userInfoHover ?? true);
-    this.config.delay = config.ui?.infoHoverDelay ?? 500; // 复用悬浮窗延迟配置
+    this.config.delay = config.ui?.infoHoverDelay ?? 500;
 
     if (!this.config.enabled) this.hideCard();
   }
 
-  /**
-   * 懒加载获取悬浮窗 DOM 实例，并绑定内部交互事件
-   * @returns {HTMLElement} 悬浮窗节点
-   */
   getCard() {
     if (!this.card) {
       this.card = document.createElement("div");
       this.card.id = "newb-user-info-card";
       document.body.appendChild(this.card);
 
-      // 鼠标移入悬浮窗时取消隐藏，移出时恢复隐藏倒计时
       this.card.addEventListener("mouseenter", () =>
         clearTimeout(this.hideTimer),
       );
@@ -40,7 +31,6 @@ class UserInfoHoverEngine {
         this.hideTimer = setTimeout(() => this.hideCard(), 200);
       });
 
-      // 关注/拉黑按钮交互 (事件委托)
       this.card.addEventListener("click", async (e) => {
         const btn = e.target.closest("button[data-act]");
         if (!btn) return;
@@ -49,13 +39,11 @@ class UserInfoHoverEngine {
         const mid = btn.dataset.mid;
 
         try {
-          // 禁用按钮防止重复点击
           btn.style.opacity = "0.5";
           btn.style.pointerEvents = "none";
 
           await window.newbAPI.modifyRelation(mid, act);
 
-          // 操作成功后强制刷新当前卡片数据
           this.showCardFor(this.currentTarget, mid, true);
         } catch (err) {
           console.error("newB: 关注/拉黑操作失败", err);
@@ -67,12 +55,6 @@ class UserInfoHoverEngine {
     return this.card;
   }
 
-  /**
-   * 渲染真实用户数据到悬浮窗
-   * @param {Object} data - API 返回的用户详情数据
-   * @param {string} mid - 当前用户 mid
-   * @param {string} bannerUrl - 已预加载完成的头图 URL
-   */
   renderCard(data, mid, target, bannerUrl) {
     const { info, stat, upstat, relation } = data;
     const card = this.getCard();
@@ -82,7 +64,6 @@ class UserInfoHoverEngine {
       return;
     }
 
-    // --- 重新注入丢失的业务逻辑变量 ---
     const avatarUrl = info.face || "";
     const name = info.name || "";
     const sign = info.sign || "这个人很懒，什么都没有写~";
@@ -148,7 +129,6 @@ class UserInfoHoverEngine {
     const likes = upstat ? upstat.likes : 0;
     const views = upstat?.archive?.view || 0;
 
-    // --- 渲染真实 DOM ---
     card.innerHTML = `
             <div class="newb-hover-content">
                 <div class="newb-u-banner" style="background-image: url('${bannerUrl}');"></div>
@@ -181,49 +161,34 @@ class UserInfoHoverEngine {
     this.positionCard(target.getBoundingClientRect());
   }
 
-  /**
-   * 智能定位算法：确保悬浮窗始终在可视区域内
-   * @param {DOMRect} targetRect - 触发元素的边界信息
-   */
   positionCard(targetRect) {
     const card = this.getCard();
     const cardRect = card.getBoundingClientRect();
     const { innerWidth: vw, innerHeight: vh } = window;
     const margin = 15;
 
-    // 默认展示在目标元素右侧
     let left = targetRect.right + margin;
     let top = targetRect.top;
 
-    // 碰撞检测：若右侧空间不足，尝试移至左侧
     if (left + cardRect.width > vw) {
       left = targetRect.left - cardRect.width - margin;
     }
 
-    // 碰撞检测：若左侧空间也不足，则居中并移至目标元素下方
     if (left < 0) {
       left = Math.max(10, (vw - cardRect.width) / 2);
       top = targetRect.bottom + margin;
     }
 
-    // 碰撞检测：底部溢出修正
     if (top + cardRect.height > vh) {
       top = vh - cardRect.height - margin;
     }
 
-    // 碰撞检测：顶部溢出修正
     if (top < 0) top = margin;
 
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
   }
 
-  /**
-   * 触发悬浮窗显示流程 (骨架屏 -> 数据请求 -> 预加载图片 -> 渲染)
-   * @param {HTMLElement} target - 触发 DOM 节点
-   * @param {string} mid - 用户 mid
-   * @param {boolean} forceRefresh - 是否强制刷新 (用于关注/拉黑操作后)
-   */
   async showCardFor(target, mid, forceRefresh = false) {
     if (!forceRefresh) {
       this.currentMid = mid;
@@ -231,9 +196,7 @@ class UserInfoHoverEngine {
     }
     const card = this.getCard();
 
-    // 1. 立即渲染 UP 主专属骨架屏
     if (!forceRefresh) {
-      // 预判认证状态：检查触发元素或其父级是否含有 B站认证图标类名
       const hasVerify =
         !!target
           .closest(".up-name")
@@ -263,11 +226,9 @@ class UserInfoHoverEngine {
     }
 
     try {
-      // 2. 异步获取用户数据
       const data = await window.newbAPI.fetchUserProfile(mid);
-      if (this.currentMid !== mid) return; // 竞态防御
+      if (this.currentMid !== mid) return;
 
-      // 3. 提取头图 URL 并执行预加载
       const info = data.info || {};
       const rawBanner =
         info.top_photo_v2?.l_img ||
@@ -278,7 +239,6 @@ class UserInfoHoverEngine {
       const img = new Image();
       img.src = bannerUrl;
 
-      // 4. 待图片加载完成（或失败）后，再执行真实 DOM 替换
       const executeRender = () => {
         if (this.currentMid !== mid) return;
         this.renderCard(data, mid, target, bannerUrl);
@@ -295,22 +255,15 @@ class UserInfoHoverEngine {
     }
   }
 
-  /**
-   * 隐藏悬浮窗并清理状态
-   */
   hideCard() {
     this.card?.classList.remove("show");
     this.currentMid = null;
   }
 
-  /**
-   * 绑定全局事件监听 (事件委托)
-   */
   bindEvents() {
     document.addEventListener("mouseover", (e) => {
       if (!this.config.enabled) return;
 
-      // 拦截带有用户 ID 标识的元素或空间链接
       const target = e.target.closest("a, [data-user-id],[data-uid]");
       if (!target || (e.relatedTarget && target.contains(e.relatedTarget)))
         return;
@@ -325,12 +278,10 @@ class UserInfoHoverEngine {
 
       if (!mid) return;
 
-      // 若当前已在展示该用户，则取消隐藏动作
       clearTimeout(this.hideTimer);
       if (this.currentMid === mid && this.card?.classList.contains("show"))
         return;
 
-      // 启动触发倒计时
       clearTimeout(this.showTimer);
       this.showTimer = setTimeout(
         () => this.showCardFor(target, mid),
@@ -355,7 +306,6 @@ class UserInfoHoverEngine {
 
       if (!mid) return;
 
-      // 取消显示动作，启动隐藏倒计时
       clearTimeout(this.showTimer);
       this.hideTimer = setTimeout(() => this.hideCard(), 200);
     });

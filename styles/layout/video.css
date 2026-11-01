@@ -34,7 +34,6 @@
 }
 
 :root.newb-optimized-layout {
-  /* 右侧推荐列表卡片化 */
   .next-play,
   .rec-list {
     position: relative;
@@ -110,7 +109,6 @@
     }
   }
 
-  /* 播放器控制栏精简 */
   #bilibili-player
     > div
     > div
@@ -142,7 +140,6 @@
     }
   }
 
-  /* 拦截UP主名称闪烁提示 */
   #mirror-vdcon
     > .right-container
     > div
@@ -164,7 +161,6 @@
     animation: blink-color 2.5s ease-in-out 1 forwards;
   }
 
-  /* 播放页背景与弹幕框适配 */
   #app > #mirror-vdcon,
   #biliMainHeader > .bili-header.fixed-header > .bili-header__bar,
   #danmukuBox > div > div > div > div > .bui-area,
@@ -222,7 +218,6 @@
     }
   }
 
-  /* 关灯模式 (Light-off) 适配 */
   #bilibili-player
     > div
     > div
@@ -264,7 +259,6 @@
     }
   }
 
-  /* 播放器容器与视频信息排版重构 */
   #bilibili-player > div > div {
     &:fullscreen > .bpx-player-primary-area > .bpx-player-video-area::after {
       visibility: hidden;
@@ -327,7 +321,6 @@
     box-shadow: none;
   }
 
-  /* 调整视频信息与播放器顺序 (Flex Order) */
   #mirror-vdcon {
     > div[class*="left"] {
       display: flex;
@@ -408,7 +401,6 @@
     }
   }
 
-  /* 评论区样式微调 */
   #commentapp {
     margin-top: 1rem;
     padding: 1px 0;
@@ -431,7 +423,6 @@
     background-color: transparent !important;
   }
 
-  /* 右侧UP主面板调整 */
   #mirror-vdcon
     > div[class*="right"]
     .up-panel-container
@@ -458,7 +449,6 @@
     }
   }
 
-  /* 播放列表页与番剧页优化 */
   #mirror-vdcon > .playlist-container--right > .recommend-list-container {
     margin-top: 10px;
     padding-top: 10px;

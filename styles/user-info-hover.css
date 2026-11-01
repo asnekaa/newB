@@ -1,4 +1,3 @@
-/* 屏蔽 B 站原生 UP 主悬浮窗 */
 :root.newb-user-info-hover-enabled .usercard-wrap,
 :root.newb-user-info-hover-enabled .bili-user-profile-view,
 :root.newb-user-info-hover-enabled .user-profile-card,
@@ -27,7 +26,6 @@
   transform: translateY(10px) scale(0.98);
   pointer-events: none;
   user-select: text;
-  /* 保持与视频悬浮窗完全一致的微弹簧曲线 */
   transition:
     opacity 0.2s ease-out,
     transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
@@ -39,7 +37,6 @@
   pointer-events: auto;
 }
 
-/* 顶部头图 */
 .newb-u-banner {
   height: 85px;
   background-size: cover;
@@ -48,12 +45,10 @@
   background-color: #e3e5e7;
 }
 
-/* 内容区 */
 .newb-u-content {
   padding: 0 16px 16px 16px;
 }
 
-/* 头像与操作按钮行 */
 .newb-u-header {
   display: flex;
   justify-content: space-between;
@@ -92,7 +87,6 @@
   line-height: 1.2;
 }
 
-/* 按钮状态样式 */
 .btn-follow {
   background: #00aeec;
   color: #fff;
@@ -143,7 +137,6 @@
   cursor: not-allowed;
 }
 
-/* 名字与等级行 */
 .newb-u-name-row {
   display: flex;
   align-items: center;
@@ -166,12 +159,10 @@
   font-weight: bold;
 }
 
-/* 等级 Icon (本地 SVG Sprite) */
 .newb-u-level-wrap {
   display: inline-block;
   height: 12px;
   width: 28px;
-  /* 增加宽度确保显示完整 */
   overflow: hidden;
   position: relative;
   vertical-align: middle;
@@ -188,7 +179,6 @@
   display: block;
 }
 
-/* 大会员标签 */
 .newb-u-vip {
   font-size: 10px;
   font-weight: bold;
@@ -202,7 +192,6 @@
   white-space: nowrap;
 }
 
-/* 认证信息 */
 .newb-u-verify {
   font-size: 12px;
   display: flex;
@@ -211,7 +200,6 @@
   margin-bottom: 10px;
 }
 
-/* 数据统计网格 */
 .newb-u-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -233,7 +221,6 @@
   margin-top: 4px;
 }
 
-/* 个人简介 */
 .newb-u-sign {
   font-size: 12px;
   color: #61666d;
@@ -248,19 +235,16 @@
   border-radius: 6px;
 }
 
-/* 真实内容淡入容器 */
 .newb-hover-content {
   animation: newb-fade-in 0.3s ease-out forwards;
 }
 
-/* 骨架屏基础动画 */
 .newb-skeleton {
   background: linear-gradient(90deg, #f2f2f3 25%, #e3e5e7 37%, #f2f2f3 63%);
   background-size: 400% 100%;
   animation: newb-skeleton-loading 1.4s ease infinite;
 }
 
-/* UP主专属骨架屏结构 (高度与真实内容高度近似，防止布局抖动) */
 .newb-u-skel-banner {
   height: 85px;
   border-radius: 12px 12px 0 0;
@@ -292,7 +276,6 @@
   border-radius: 6px;
 }
 
-/* 动态认证信息骨架屏 */
 .newb-u-skel-verify {
   height: 14px;
   width: 160px;
@@ -331,7 +314,6 @@
   }
 }
 
-/*  Dark♂ 模式适配 */
 :root.newb-night-mode #newb-user-info-card {
   background: rgba(26, 35, 44, 0.98);
   border-color: rgba(255, 255, 255, 0.1);

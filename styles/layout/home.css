@@ -1,5 +1,4 @@
 :root.newb-optimized-layout {
-  /* 隐藏冗余模块 */
   .palette-button-outer.palette-feed4,
   & body > .desktop-download-tip,
   div.bili-feed4 > div.header-channel > div.header-channel-fixed,
@@ -14,7 +13,6 @@
     display: none !important;
   }
 
-  /* 修复推荐流侧边栏与滚动按钮定位 */
   .xs_sm.recommended-container_floor-aside {
     position: relative !important;
   }
@@ -35,7 +33,6 @@
     }
   }
 
-  /* 响应式网格布局重构 */
   .is-version8 > *,
   .bili-feed4 .container > * {
     margin: 0 !important;
@@ -68,7 +65,6 @@
     }
   }
 
-  /* 视频卡片悬浮与交互优化 */
   .bili-video-card.is-rcmd > .bili-video-card__wrap {
     background-color: #f0f7fc !important;
     box-shadow: 0 4px 12px rgba(0, 174, 236, 0.1) !important;
@@ -115,7 +111,6 @@
     place-self: center !important;
   }
 
-  /* 屏蔽按钮悬浮动画 */
   .bili-video-card__info--bottom {
     > a.bili-video-card__info--owner {
       pointer-events: auto;
@@ -159,7 +154,6 @@
     }
   }
 
-  /* 信息流加载动画锚点定位 */
   .bili-feed4 > main > div.feed2 > div > div.container.is-version8 {
     > div {
       order: 0;

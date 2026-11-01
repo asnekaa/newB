@@ -1,15 +1,13 @@
-/* --- 1. 全局主题变量 --- */
 :root {
-  --bili-blue: #00aeec; /* B站品牌蓝 */
-  --bili-pink: #ff6699; /* B站品牌粉 */
-  --bili-green: #2ac864; /* B站品牌绿 */
-  --bg-color: #f6f7f8; /* 全局背景色 */
-  --text-main: #18191c; /* 主文本色 */
-  --text-sub: #9499a0; /* 次要文本色 */
-  --border: #e3e5e7; /* 边框与分割线 */
+  --bili-blue: #00aeec;
+  --bili-pink: #ff6699;
+  --bili-green: #2ac864;
+  --bg-color: #f6f7f8;
+  --text-main: #18191c;
+  --text-sub: #9499a0;
+  --border: #e3e5e7;
 }
 
-/* --- 2. 基础布局 --- */
 body {
   margin: 0;
   font-family:
@@ -26,7 +24,6 @@ body {
   height: 100%;
 }
 
-/* 主内容区 */
 .content {
   flex: 1;
   min-height: 0;
@@ -35,7 +32,6 @@ body {
   padding: 15px;
 }
 
-/* --- 3. 顶部栏 --- */
 .topbar {
   flex-shrink: 0;
   display: flex;
@@ -61,7 +57,6 @@ body {
   }
 }
 
-/* --- 4. 表单与通用控件 --- */
 .form-group {
   margin-bottom: 12px;
   background: #fff;
@@ -98,7 +93,6 @@ input[type="time"] {
   outline: none;
 }
 
-/* 按钮体系 */
 .btn-add,
 .btn-primary,
 .btn-secondary,
@@ -139,7 +133,6 @@ input[type="time"] {
   font-size: 11px;
 }
 
-/* 分组标题 */
 .section-title {
   font-size: 13px;
   font-weight: bold;
@@ -147,7 +140,6 @@ input[type="time"] {
   margin: 16px 0 8px 4px;
 }
 
-/* 自定义下拉菜单 */
 .newb-select {
   padding: 4px 8px;
   border-radius: 6px;
@@ -160,7 +152,6 @@ input[type="time"] {
   font-family: inherit;
 }
 
-/* 子设置面板 (缩进与背景区分) */
 .sub-panel {
   background: #f9f9f9;
   border-radius: 6px;
@@ -170,7 +161,6 @@ input[type="time"] {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 拨动开关 (Toggle Switch) */
 .switch {
   position: relative;
   display: inline-block;
@@ -215,7 +205,6 @@ input[type="time"] {
   }
 }
 
-/* --- 5. 同步面板 --- */
 .sync-card {
   background: #fff;
   padding: 15px;
@@ -236,16 +225,13 @@ input[type="time"] {
   }
 }
 
-/* --- 6.  Dark♂ 模式适配 --- */
 body.dark-mode {
-  /* 覆写全局变量 */
   --bg-color: #111820;
   --text-main: #e0e5ea;
   --text-sub: #8b96a5;
   --border: #232e3b;
   background-color: var(--bg-color);
 
-  /* 容器与面板 Dark♂ 化 */
   .topbar {
     background: #1a232c;
   }
@@ -255,7 +241,6 @@ body.dark-mode {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
-  /* 表单控件 Dark♂ 化 */
   input[type="text"],
   input[type="number"],
   input[type="time"],
@@ -282,7 +267,6 @@ body.dark-mode {
   }
 }
 
-/* --- 7. 好van的弹窗 --- */
 .modal-overlay {
   position: fixed;
   top: 0;

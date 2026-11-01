@@ -1,6 +1,4 @@
-/*  Dark♂ 模式适配 */
 :root.newb-night-mode {
-  /* --- Dark♂ 主题变量覆盖 --- */
   --newb-bottom-bg: #1a232c !important;
   --newb-editor-bg: #1a232c !important;
   --newb-editor-hover-bg: #232e3b !important;
@@ -19,7 +17,6 @@
   --graph_bg_regular: #1a232c !important;
   --graph_bg_thick: #232e3b !important;
 
-  /* --- 全局背景去色与暗化 --- */
   &,
   & body,
   & #app,
@@ -47,7 +44,6 @@
     background: rgba(255, 255, 255, 0.25);
   }
 
-  /* --- 顶栏 --- */
   #biliMainHeader .bili-header__bar,
   body:has(.search-layout, .search-page-wrapper) .bili-header__bar,
   body:has(.search-layout, .search-page-wrapper) .bili-header-m__bar,
@@ -68,7 +64,6 @@
     color: #e0e5ea !important;
   }
 
-  /* --- 页脚 --- */
   .bili-footer,
   .international-footer,
   .bili-main-footer {
@@ -88,7 +83,6 @@
     color: #00aeec !important;
   }
 
-  /* --- 视频卡片 --- */
   .bili-video-card.is-rcmd > .bili-video-card__wrap,
   .video-list-item,
   .search-all-list .bili-video-card__wrap,
@@ -135,7 +129,6 @@
     fill: #00aeec !important;
   }
 
-  /* --- 弹幕与评论区 --- */
   #danmukuBox,
   #commentapp,
   .bili-comments-bottom-fixed-wrapper > div {
@@ -203,7 +196,6 @@
     color: #8b96a5 !important;
   }
 
-  /* --- 弹窗与浮层--- */
   .search-header,
   .search-layout,
   .video-list-item,
@@ -246,7 +238,6 @@
     color: #00aeec !important;
   }
 
-  /* --- 播放页 --- */
   #app > #mirror-vdcon,
   #biliMainHeader > .bili-header.fixed-header > .bili-header__bar,
   #danmukuBox > div > div > div > div > .bui-area,
@@ -324,7 +315,6 @@
     color: #00aeec !important;
   }
 
-  /* --- 专栏页 --- */
   .article-container,
   .right-side-bar,
   .read-article-holder,

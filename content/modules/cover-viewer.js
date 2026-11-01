@@ -2,22 +2,15 @@ class CoverViewerEngine {
   constructor() {
     this.enabled = false;
     this.timer = null;
-    this.isRunning = false; // 异步并发锁，防止重复扫描
+    this.isRunning = false;
   }
 
-  /**
-   * 更新配置并控制引擎启停
-   * @param {Object} config - 全局配置对象
-   */
   updateConfig(config) {
     const isMasterOn = config.masterSwitch ?? true;
     this.enabled = isMasterOn && !!config.ui?.showCoverViewer;
     this.enabled ? this.start() : this.stop();
   }
 
-  /**
-   * 启动定时扫描任务 (每 2 秒执行一次)
-   */
   start() {
     if (!this.timer) {
       this.timer = setInterval(() => this.scan(), 2000);
@@ -25,9 +18,6 @@ class CoverViewerEngine {
     }
   }
 
-  /**
-   * 停止定时扫描任务
-   */
   stop() {
     if (this.timer) {
       clearInterval(this.timer);
@@ -35,9 +25,6 @@ class CoverViewerEngine {
     }
   }
 
-  /**
-   * 扫描 DOM 中的视频卡片并注入在线人数
-   */
   async scan() {
     if (this.isRunning || !this.enabled) return;
     this.isRunning = true;
@@ -53,11 +40,9 @@ class CoverViewerEngine {
         const targetElement = statElement.closest("a");
         if (!targetElement?.href) continue;
 
-        // 节流控制：每个卡片 120 秒内只请求一次
         const lastTS = statElement.dataset.newbCvTs;
         if (lastTS && Date.now() - Number(lastTS) < 120 * 1000) continue;
 
-        // 提取 BV 号
         const match = targetElement.href.match(/\/video\/(BV[a-zA-Z0-9]+)/);
         if (!match) continue;
         const bvid = match[1];
@@ -65,12 +50,11 @@ class CoverViewerEngine {
         let aid = statElement.dataset.newbAid;
         let cid = statElement.dataset.newbCid;
 
-        // 若无 aid/cid 缓存，则先请求视频详情接口获取
         if (!aid || !cid) {
           try {
             const videoInfo = await window.newbAPI.fetchVideoInfo(bvid);
             if (!videoInfo?.View) {
-              statElement.dataset.newbCvTs = Date.now(); // 失败冷却，避免高频重试
+              statElement.dataset.newbCvTs = Date.now();
               continue;
             }
 
@@ -85,7 +69,6 @@ class CoverViewerEngine {
           }
         }
 
-        // 请求在线人数接口并渲染 UI
         try {
           const onlineTotal = await window.newbAPI.getOnlineTotal(
             aid,
@@ -111,17 +94,14 @@ class CoverViewerEngine {
           statElement.dataset.newbCvTs = Date.now();
         } catch (e) {
           if (e.message === "412_BANNED") return this.forcedClose();
-          statElement.dataset.newbCvTs = Date.now(); // 失败冷却，避免频繁请求
+          statElement.dataset.newbCvTs = Date.now();
         }
       }
     } finally {
-      this.isRunning = false; // 释放锁
+      this.isRunning = false;
     }
   }
 
-  /**
-   * 熔断机制：当触发 B 站 API 频率限制 (412) 时，自动关闭该功能并保存配置
-   */
   forcedClose() {
     this.stop();
     this.enabled = false;

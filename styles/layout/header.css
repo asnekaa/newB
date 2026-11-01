@@ -7,7 +7,6 @@
     background-color: transparent !important;
   }
 
-  /* 顶栏吸顶毛玻璃效果 */
   .bili-feed4 > .bili-header.large-header > .bili-header__bar.slide-down {
     background-color: rgba(240, 247, 252, 0.9) !important;
     backdrop-filter: blur(10px);
@@ -25,7 +24,6 @@
   }
 }
 
-/* 隐藏除“首页”外的所有左侧导航项 */
 :root.newb-layout-common {
   .bili-header__bar > ul.left-entry > li:not(:first-child),
   #biliMainHeader ul.left-entry > li:not(:first-child),
@@ -34,7 +32,6 @@
   }
 }
 
-/* 针对第一个导航项：隐藏“首页”文字，单独保留 Logo 图标 */
 :root.newb-layout-common {
   .bili-header__bar > ul.left-entry > li:first-child > a span,
   #biliMainHeader ul.left-entry > li:first-child > a span,
@@ -44,7 +41,6 @@
   }
 }
 
-/* 修复因隐藏左侧导航导致的搜索框偏移，强制居中对齐 */
 :root.newb-layout-common {
   .bili-header__bar > ul.left-entry,
   #biliMainHeader ul.left-entry,

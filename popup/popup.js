@@ -2,25 +2,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const configManager = window.newbConfigManager;
   let config = await configManager.loadConfig();
 
-  /**
-   * 初始化应用
-   */
   const init = () => {
-    chrome.storage.local.remove("blockedLogs"); // 清理旧版本遗留的拦截日志
+    chrome.storage.local.remove("blockedLogs");
     renderAll();
     bindEvents();
   };
 
-  /**
-   * 渲染所有 UI 组件与配置状态
-   */
   const renderAll = () => {
-    // 1. 基础设置渲染
     document.getElementById("master-switch").checked =
       config.masterSwitch ?? true;
     document.getElementById("cleanup-enabled").checked = config.cleanup.enabled;
 
-    // 2. UI 增强开关渲染
     const ui = config.ui;
     document.getElementById("ui-layout-opt").checked = ui.layoutOptimization;
     document.getElementById("ui-hide-hot-search").checked =
@@ -46,7 +38,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       ui.showCoverViewer ?? false;
     document.getElementById("ui-hao-van-de").checked = ui.haoVanDe ?? false;
 
-    // 3.  Dark♂ 模式渲染与自身主题切换
     const nm = ui.nightMode || {
       enabled: true,
       followSystem: true,
@@ -54,7 +45,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       end: "06:00",
     };
 
-    // 状态映射：优先读取显式保存的 mode，兼容旧版配置
     let mode = nm.mode;
     if (!mode) {
       if (!nm.enabled) mode = "off";
@@ -66,7 +56,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("ui-night-start").value = nm.start;
     document.getElementById("ui-night-end").value = nm.end;
 
-    // 控制时间选择器的显示状态 (仅在自定义时段时展开)
     const timeRangeEl = document.getElementById("night-time-range");
     if (mode === "custom") {
       timeRangeEl.style.maxHeight = "40px";
@@ -80,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       timeRangeEl.style.pointerEvents = "none";
     }
 
-    // 视频悬浮窗子面板的联动折叠
     const videoHoverEnabled = ui.videoInfoHover ?? true;
     const subPanel = document.getElementById("video-hover-sub-panel");
     if (videoHoverEnabled) {
@@ -107,7 +95,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         : currentMins >= startMins || currentMins <= endMins;
     };
 
-    // 动态判断 Popup 自身是否需要开启 Dark♂ 模式
     const isSystemDark = window.matchMedia(
       "(prefers-color-scheme: dark)",
     ).matches;
@@ -119,11 +106,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.classList.toggle("dark-mode", mode !== "off" && isDarkTime);
   };
 
-  /**
-   * 保存当前表单状态至本地并刷新 UI
-   */
   const saveAndRefresh = async () => {
-    // 好van的拦截器：若开启，则通过随机字典读取错位的 DOM 状态
     const getVal = (id) => {
       if (id === "ui-hao-van-de" || id === "master-switch") {
         const el = document.getElementById(id);
@@ -141,7 +124,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.ui.infoHoverDelay =
       parseInt(document.getElementById("ui-video-info-delay").value) || 500;
 
-    // 经过拦截器处理的开关状态
     config.cleanup.enabled = getVal("cleanup-enabled");
 
     config.ui.layoutOptimization = getVal("ui-layout-opt");
@@ -155,16 +137,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.ui.userInfoHover = getVal("ui-user-info-hover");
     config.ui.showIpLocation = getVal("ui-show-ip");
     config.ui.showCoverViewer = getVal("ui-show-cover-viewer");
-    config.ui.haoVanDe = getVal("ui-hao-van-de"); // 确保状态同步时包含自身，但已被 getVal 豁免错位
+    config.ui.haoVanDe = getVal("ui-hao-van-de");
 
     const nightModeSelect = document.getElementById(
       "ui-night-mode-select",
     ).value;
     config.ui.nightMode = {
-      mode: nightModeSelect, // 显式保存 UI 模式，防止时间重合导致的状态回弹
+      mode: nightModeSelect,
       enabled: nightModeSelect !== "off",
       followSystem: nightModeSelect === "system",
-      // 巧妙映射：当选择"始终开启"时，将时间段设为全天，无需修改底层引擎代码
       start:
         nightModeSelect === "on"
           ? "00:00"
@@ -176,14 +157,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
     await configManager.saveLocal(config);
-    renderAll(); // 确保状态同步
+    renderAll();
   };
 
-  /**
-   * 绑定所有 DOM 事件
-   */
   const bindEvents = () => {
-    // 1. 绑定所有开关与输入框的 Change 事件
     const inputs = [
       "master-switch",
       "cleanup-enabled",
@@ -208,7 +185,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) el.addEventListener("change", saveAndRefresh);
     });
 
-    // 2. 云端同步与导入导出
     document
       .getElementById("btn-upload")
       .addEventListener("click", async (e) => {
@@ -254,23 +230,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       } catch (err) {
         alert(err.message || "导入失败");
       } finally {
-        // 允许重复选择同一个文件
         fileInput.value = "";
       }
     });
 
-    // 3. 监听系统主题变化 (实时更新 Popup 自身主题)
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", () => {
         if (config.ui?.nightMode?.followSystem) renderAll();
       });
 
-    // 4. 好van的逻辑 (独立于常规 inputs 监听)
     const haoVanDeToggle = document.getElementById("ui-hao-van-de");
     const haoVanDeModal = document.getElementById("hao-van-de-modal");
 
-    // 参与错位的开关列表
     const switchIds = [
       "cleanup-enabled",
       "ui-layout-opt",
@@ -286,7 +258,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       "ui-show-cover-viewer",
     ];
 
-    // 洗牌算法 (Fisher-Yates)
     const shuffleArray = (array) => {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -296,7 +267,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return arr;
     };
 
-    // 生成随机映射字典
     const generateMap = () => {
       const map = {};
       const shuffled = shuffleArray(switchIds);
@@ -307,10 +277,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (haoVanDeToggle) {
       haoVanDeToggle.addEventListener("change", (e) => {
         if (e.target.checked) {
-          e.target.checked = false; // 视觉上先恢复，等待用户确认
+          e.target.checked = false;
           haoVanDeModal.classList.add("show");
         } else {
-          // 关闭好van的，销毁随机字典
           config.ui.haoVanDe = false;
           config.ui.haoVanDeMap = null;
           saveAndRefresh();
@@ -335,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ?.addEventListener("click", async () => {
         haoVanDeModal.classList.remove("show");
         config.ui.haoVanDe = true;
-        config.ui.haoVanDeMap = generateMap(); // 生成全新的混沌闭环
+        config.ui.haoVanDeMap = generateMap();
         haoVanDeToggle.checked = true;
         await configManager.saveLocal(config);
         renderAll();

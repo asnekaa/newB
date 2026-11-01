@@ -168,19 +168,11 @@ const biliMD5 = (function () {
 
 class BiliAPI {
   constructor() {
-    this.wbiKeys = null; // 缓存的 Wbi 密钥对 (img_key, sub_key)
-    this.wbiKeysFetchTime = 0; // 密钥获取时间戳，用于控制缓存失效
+    this.wbiKeys = null;
+    this.wbiKeysFetchTime = 0;
   }
 
-  /**
-   * 生成 Wbi 签名 (核心鉴权逻辑)
-   * @param {Object} params - 原始请求参数
-   * @param {string} img_key - 从 nav 接口获取的 img_key
-   * @param {string} sub_key - 从 nav 接口获取的 sub_key
-   * @returns {string} 拼接好 w_rid 签名的 URL 查询字符串
-   */
   encWbi(params, img_key, sub_key) {
-    // B站固定的混淆表，用于打乱密钥字符顺序
     const mixinKeyEncTab = [
       46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5,
       49, 33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55,
@@ -188,19 +180,16 @@ class BiliAPI {
       62, 11, 36, 20, 34, 44, 52,
     ];
 
-    // 1. 拼接并混淆生成最终的 mixin_key
     const orig = img_key + sub_key;
     const mixin_key = mixinKeyEncTab
       .map((n) => orig[n])
       .join("")
       .slice(0, 32);
 
-    // 2. 注入当前时间戳并过滤非法字符
     const curr_time = Math.round(Date.now() / 1000);
     const chr_filter = /[!'()*]/g;
     const queryParams = { ...params, wts: curr_time };
 
-    // 3. 按字典序排序参数并拼接
     const queryString = Object.keys(queryParams)
       .sort()
       .map(
@@ -209,17 +198,11 @@ class BiliAPI {
       )
       .join("&");
 
-    // 4. 计算 MD5 得到 w_rid
     const wbi_sign = biliMD5(queryString + mixin_key);
     return `${queryString}&w_rid=${wbi_sign}`;
   }
 
-  /**
-   * 获取并缓存 Wbi 密钥 (有效期 12 小时)
-   * @returns {Promise<Object|null>} 包含 img_key 和 sub_key 的对象
-   */
   async getWbiKeys() {
-    // 命中缓存则直接返回
     if (
       this.wbiKeys &&
       Date.now() - this.wbiKeysFetchTime < 12 * 60 * 60 * 1000
@@ -232,7 +215,6 @@ class BiliAPI {
       const { data } = await res.json();
       const { img_url, sub_url } = data.wbi_img;
 
-      // 从 URL 中提取 key (截取文件名部分)
       this.wbiKeys = {
         img_key: img_url.slice(
           img_url.lastIndexOf("/") + 1,
@@ -251,11 +233,6 @@ class BiliAPI {
     }
   }
 
-  /**
-   * 获取视频详细信息 (带 Wbi 签名)
-   * @param {string} bvid - 视频的 BV 号
-   * @returns {Promise<Object>} 视频详情数据
-   */
   async fetchVideoInfo(bvid) {
     const keys = await this.getWbiKeys();
     if (!keys) throw new Error("Wbi keys fetch failed");
@@ -266,7 +243,6 @@ class BiliAPI {
       { credentials: "include" },
     );
 
-    // 触发风控拦截
     if (res.status === 412) throw new Error("412_BANNED");
 
     const json = await res.json();
@@ -275,13 +251,6 @@ class BiliAPI {
     return json.data;
   }
 
-  /**
-   * 获取视频 AI 总结
-   * @param {string} bvid - 视频 BV 号
-   * @param {number} cid - 视频 cid
-   * @param {number} up_mid - UP主 mid
-   * @returns {Promise<Object>} AI 总结数据
-   */
   async fetchVideoConclusion(bvid, cid, up_mid) {
     const keys = await this.getWbiKeys();
     if (!keys) throw new Error("Wbi keys fetch failed");
@@ -302,11 +271,6 @@ class BiliAPI {
     return json.data;
   }
 
-  /**
-   * 获取视频热评
-   * @param {number} aid - 视频 aid (oid)
-   * @returns {Promise<Object>} 评论数据
-   */
   async fetchVideoReply(aid) {
     const keys = await this.getWbiKeys();
     if (!keys) throw new Error("Wbi keys fetch failed");
@@ -327,11 +291,6 @@ class BiliAPI {
     return json.data;
   }
 
-  /**
-   * 获取 UP 主个人资料与统计数据 (并发请求)
-   * @param {string|number} mid - UP主 mid
-   * @returns {Promise<Object>} 聚合后的用户数据
-   */
   async fetchUserProfile(mid) {
     const keys = await this.getWbiKeys();
     if (!keys) throw new Error("Wbi keys fetch failed");
@@ -339,7 +298,6 @@ class BiliAPI {
     const infoQuery = this.encWbi({ mid }, keys.img_key, keys.sub_key);
     const relQuery = this.encWbi({ mid }, keys.img_key, keys.sub_key);
 
-    // 并发请求：基础信息、关注数/粉丝数、播放量/获赞数、当前登录用户的关注关系
     const [infoRes, statRes, upstatRes, relRes] = await Promise.allSettled([
       fetch(`https://api.bilibili.com/x/space/wbi/acc/info?${infoQuery}`, {
         credentials: "include",
@@ -375,14 +333,7 @@ class BiliAPI {
     };
   }
 
-  /**
-   * 修改用户关注/拉黑状态
-   * @param {string|number} mid - 目标用户 mid
-   * @param {number} act - 操作类型 (1:关注 2:取消关注 5:拉黑 6:取消拉黑)
-   * @returns {Promise<Object>}
-   */
   async modifyRelation(mid, act) {
-    // 从 Cookie 中提取 CSRF Token (bili_jct)
     const match = document.cookie.match(/bili_jct=([^;]+)/);
     const csrf = match ? match[1] : "";
     if (!csrf) throw new Error("CSRF token not found");
@@ -404,19 +355,11 @@ class BiliAPI {
     return json;
   }
 
-  /**
-   * 获取视频当前在线观看人数
-   * @param {string|number} aid - 稿件 avid
-   * @param {string|number} cid - 视频 cid
-   * @param {string} bvid - 稿件 bvid
-   * @returns {Promise<Object>} 在线人数统计数据
-   */
   async getOnlineTotal(aid, cid, bvid) {
     const res = await fetch(
       `https://api.bilibili.com/x/player/online/total?aid=${aid}&cid=${cid}&bvid=${bvid}`,
     );
 
-    // 触发风控拦截
     if (res.status === 412) throw new Error("412_BANNED");
 
     const json = await res.json();

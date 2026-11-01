@@ -6,9 +6,6 @@
   const isShowIpEnabled = () =>
     isMasterOn() && localStorage.getItem("newb_show_ip") === "true";
 
-  /* ==========================================
-   * Fetch & XHR 网络拦截器 (净化与防遥测)
-   * ========================================== */
   const BLOCKED_URLS = [
     "cm.bilibili.com/cm/api/fees/pc",
     "data.bilibili.com/v2/log/web",
@@ -41,7 +38,6 @@
               item.card_type !== "ad_web_s",
           );
 
-          // 过滤后正文长度和编码已变化，不能再沿用原响应头
           const headers = new Headers(response.headers);
           headers.delete("content-length");
           headers.delete("content-encoding");
@@ -55,7 +51,6 @@
         }
         return response;
       } catch (e) {
-        // 首次请求已成功时直接返回原响应，避免重复请求接口
         return response || originalFetch(input, init);
       }
     }
@@ -82,9 +77,6 @@
     return originalXhrSend.apply(this, args);
   };
 
-  /* ==========================================
-   * Web Components 劫持 (样式注入与 IP 属地)
-   * ========================================== */
   const LAYOUT_STYLES = {
     "bili-comments-header-renderer": `
             .bili-comments-bottom-fixed-wrapper { margin-bottom: 1rem; }

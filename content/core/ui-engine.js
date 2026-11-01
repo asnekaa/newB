@@ -1,13 +1,11 @@
 class UIEngine {
   constructor() {
-    // 核心状态标识与存储键名
     this.nightModeClass = "newb-night-mode";
     this.namespaceClass = "newb-optimized-layout";
     this.storageKeyLayout = "newb_layout_opt";
     this.storageKeyRedirect = "newb_redirect_home";
     this.storageKeyIp = "newb_show_ip";
 
-    // 首页重定向拦截 (最高优先级，同步阻塞执行，彻底杜绝页面闪烁)
     if (
       localStorage.getItem(this.storageKeyRedirect) === "true" &&
       location.hostname === "www.bilibili.com" &&
@@ -17,12 +15,11 @@ class UIEngine {
       return;
     }
 
-    this.currentNightModeConfig = null; // 缓存 Dark♂ 模式配置
+    this.currentNightModeConfig = null;
     this.systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    this.dynHotSearchObserver = null; // 动态页热搜兜底观察器
+    this.dynHotSearchObserver = null;
     this.dynHotSearchTimer = null;
 
-    // 监听系统主题变化，实现无缝实时切换
     this.systemThemeQuery.addEventListener("change", (e) => {
       if (
         this.currentNightModeConfig?.enabled &&
@@ -32,8 +29,6 @@ class UIEngine {
       }
     });
 
-    // 核心机制：同步阻塞执行 (FOUC 防御)
-    // 在 DOM 解析阶段立即读取缓存状态并注入深色主题，彻底杜绝页面刷新时的“白屏闪烁”
     if (localStorage.getItem("newb_night_mode_active") === "true") {
       const root = document.documentElement;
       root.setAttribute("data-theme", "dark");
@@ -49,12 +44,7 @@ class UIEngine {
     }
   }
 
-  /**
-   * 根据最新配置更新 DOM 状态与本地缓存
-   * @param {Object} config - 全局配置对象
-   */
   update(config) {
-    // 1. 配置解构与默认值回退
     const isMasterOn = config.masterSwitch ?? true;
     const uiCfg = config.ui || {};
 
@@ -69,13 +59,11 @@ class UIEngine {
     const isUserInfoHover = isMasterOn && (uiCfg.userInfoHover ?? true);
     const isIpEnabled = isMasterOn && !!uiCfg.showIpLocation;
 
-    // 2. 跨域/跨页面状态同步 (供 inject 脚本读取)
     localStorage.setItem("newb_master_switch", isMasterOn);
     localStorage.setItem(this.storageKeyLayout, isLayoutEnabled);
     localStorage.setItem(this.storageKeyRedirect, isRedirectHome);
     localStorage.setItem(this.storageKeyIp, isIpEnabled);
 
-    // 异步兜底重定向 (处理首次跨域配置同步时的延迟)
     if (
       isRedirectHome &&
       location.hostname === "www.bilibili.com" &&
@@ -85,7 +73,6 @@ class UIEngine {
       return;
     }
 
-    // 3. 布局优化注入 (规避个人空间页面的样式冲突)
     const root = document.documentElement;
     const isSpacePage = location.hostname === "space.bilibili.com";
 
@@ -96,10 +83,8 @@ class UIEngine {
     root.classList.toggle("newb-hide-home-feed", isHideHomeFeed);
     root.classList.toggle("newb-user-info-hover-enabled", isUserInfoHover);
 
-    // 动态页右侧的「bilibili热搜」类名不固定，额外按标题文字兜底隐藏
     this.applyDynamicHotSearch(isHideHotSearch);
 
-    // 4.  Dark♂ 模式调度与主题锁定
     this.currentNightModeConfig = nm;
 
     let isDarkTime = false;
@@ -112,12 +97,6 @@ class UIEngine {
     this.applyNightMode(isDarkTime);
   }
 
-  /**
-   * 隐藏动态页右侧的「bilibili热搜」模块
-   * B 站该模块的类名会随版本变化，这里按标题文字定位并隐藏整张卡片，
-   * 同时避免误伤顶栏搜索面板中的热搜
-   * @param {boolean} enabled - 是否启用
-   */
   applyDynamicHotSearch(enabled) {
     const MARK = "newb-hide-dyn-hot-search";
     const isDynamicPage =
@@ -140,9 +119,6 @@ class UIEngine {
       return;
     }
 
-    /**
-     * 从热搜标题元素向上寻找整张卡片容器
-     */
     const findCard = (el) => {
       let node = el;
       let fallback = null;
@@ -165,9 +141,6 @@ class UIEngine {
       return fallback || el.parentElement?.parentElement || el.parentElement;
     };
 
-    /**
-     * 确认标题位于页面右半侧，排除顶栏搜索面板
-     */
     const isRightSideTitle = (el) => {
       if (
         el.closest(
@@ -189,7 +162,6 @@ class UIEngine {
       const rect = card.getBoundingClientRect();
       const textLength = (card.textContent || "").length;
 
-      // 防止把整个右栏或页面容器误判为热搜卡片
       if (
         rect.width > 600 ||
         rect.width > window.innerWidth * 0.5 ||
@@ -206,7 +178,6 @@ class UIEngine {
       if (!document.body) return;
       if (document.querySelector(`.${MARK}`)?.isConnected) return;
 
-      // 已通过类名规则命中，无需文字兜底
       if (
         document.querySelector(
           ".bili-dyn-topic-box, .bili-dyn-search-trendings",
@@ -257,10 +228,6 @@ class UIEngine {
     }
   }
 
-  /**
-   * 应用 Dark♂ 模式状态并锁定主题
-   * @param {boolean} isDark - 是否开启深色模式
-   */
   applyNightMode(isDark) {
     const root = document.documentElement;
     localStorage.setItem("newb_night_mode_active", isDark);
@@ -279,11 +246,6 @@ class UIEngine {
     }
   }
 
-  /**
-   * 强制锁定主题属性 (Theme Lock)
-   * 拦截并覆盖 B 站原生 JS 对 `data-theme` 和 `class` 的动态修改
-   * @param {'dark'|'light'} themeValue - 目标主题模式
-   */
   lockThemeAttribute(themeValue) {
     const root = document.documentElement;
     const isDark = themeValue === "dark";
@@ -292,14 +254,10 @@ class UIEngine {
       light: "https://s1.hdslb.com/bfs/seed/jinkela/short/bili-theme/light.css",
     };
 
-    /**
-     * 核心注入逻辑：确保官方 CSS 文件与 DOM 属性的一致性
-     */
     const applyTheme = () => {
       let linkEl = document.getElementById("newb-theme-css");
       const targetCss = isDark ? CSS_URLS.dark : CSS_URLS.light;
 
-      // 动态挂载或更新官方主题样式表
       if (!linkEl) {
         linkEl = document.createElement("link");
         linkEl.id = "newb-theme-css";
@@ -310,7 +268,6 @@ class UIEngine {
         linkEl.href = targetCss;
       }
 
-      // 强制覆写 DOM 属性
       if (isDark) {
         root.classList.add("bili_dark", "dark");
         root.setAttribute("data-theme", "dark");
@@ -324,17 +281,13 @@ class UIEngine {
       }
     };
 
-    // 首次立即应用
     applyTheme();
 
-    // 建立防篡改观察者 (MutationObserver)
     if (this.themeObserver) this.themeObserver.disconnect();
 
     this.themeObserver = new MutationObserver(() => {
-      // 触发时先断开观察，防止 applyTheme 引发无限递归死循环
       this.themeObserver.disconnect();
       applyTheme();
-      // 恢复观察
       this.themeObserver.observe(root, {
         attributes: true,
         attributeFilter: ["class", "data-theme"],
@@ -347,12 +300,6 @@ class UIEngine {
     });
   }
 
-  /**
-   * 判断当前时间是否在指定的 Dark♂ 模式时段内 (支持跨天计算)
-   * @param {string} startStr - 开始时间 (例: "18:00")
-   * @param {string} endStr - 结束时间 (例: "06:00")
-   * @returns {boolean} 是否处于 Dark♂ 模式时段
-   */
   isTimeInRange(startStr, endStr) {
     if (!startStr || !endStr) return false;
 
@@ -365,7 +312,6 @@ class UIEngine {
     const startMins = sH * 60 + sM;
     const endMins = eH * 60 + eM;
 
-    // 处理跨天逻辑 (如 18:00 到次日 06:00)
     return startMins < endMins
       ? currentMins >= startMins && currentMins <= endMins
       : currentMins >= startMins || currentMins <= endMins;

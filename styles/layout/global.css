@@ -1,12 +1,10 @@
 :root.newb-optimized-layout {
-  /* --- 全局主题变量注入 --- */
   --Wh0_rgb: transparent !important;
   --newb-bottom-bg: #f0f7fc !important;
   --newb-editor-bg: #f0f7fc !important;
   --newb-editor-hover-bg: #ffffff !important;
   --newb-editor-focus-bg: #ffffff !important;
 
-  /* --- 基础交互与滚动条 --- */
   & {
     scroll-behavior: smooth;
   }
@@ -30,7 +28,6 @@
     background: rgba(148, 153, 160, 0.5);
   }
 
-  /* --- 全局背景统一化 --- */
   &,
   & body,
   & #app,
@@ -58,7 +55,6 @@
     background-color: transparent !important;
   }
 
-  /* --- 广告与推广位屏蔽 --- */
   #slide_ad,
   #right-bottom-banner,
   #notice,

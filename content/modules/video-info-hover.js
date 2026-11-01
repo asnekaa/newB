@@ -1,4 +1,3 @@
-// B站分区 TID 映射表 (静态常量，避免污染实例内存)
 const VIDEO_TYPE_MAP = {
   1: "动画",
   24: "MAD·AMV",
@@ -141,23 +140,19 @@ const VIDEO_TYPE_MAP = {
 class VideoInfoHoverEngine {
   constructor() {
     this.config = { enabled: true, delay: 500 };
-    this.card = null; // 悬浮窗 DOM 实例
-    this.showTimer = null; // 触发显示的防抖定时器
-    this.hideTimer = null; // 触发隐藏的防抖定时器
-    this.currentBvid = null; // 当前正在展示的视频 BV 号 (用于防御竞态条件)
-    this.currentTarget = null; // 当前触发悬停的 DOM 节点
-    this.currentAnchor = null; // 悬停瞬间的定位锚点
-    this.hoverBvid = null; // 指针当前所在视频
-    this.pendingBvid = null; // 正在倒计时的视频
-    this.showToken = 0; // 请求/渲染代际，防止旧结果覆盖新卡片
+    this.card = null;
+    this.showTimer = null;
+    this.hideTimer = null;
+    this.currentBvid = null;
+    this.currentTarget = null;
+    this.currentAnchor = null;
+    this.hoverBvid = null;
+    this.pendingBvid = null;
+    this.showToken = 0;
 
     this.bindEvents();
   }
 
-  /**
-   * 更新引擎配置
-   * @param {Object} config - 全局配置对象
-   */
   updateConfig(config) {
     const isMasterOn = config.masterSwitch ?? true;
     this.config.enabled = isMasterOn && (config.ui?.videoInfoHover ?? true);
@@ -169,17 +164,12 @@ class VideoInfoHoverEngine {
     if (!this.config.enabled) this.hideCard();
   }
 
-  /**
-   * 懒加载获取悬浮窗 DOM 实例，并绑定内部交互事件
-   * @returns {HTMLElement} 悬浮窗节点
-   */
   getCard() {
     if (!this.card) {
       this.card = document.createElement("div");
       this.card.id = "newb-video-info-card";
       document.body.appendChild(this.card);
 
-      // 鼠标移入悬浮窗时取消隐藏，移出时恢复隐藏倒计时
       this.card.addEventListener("mouseenter", () =>
         clearTimeout(this.hideTimer),
       );
@@ -187,16 +177,13 @@ class VideoInfoHoverEngine {
         this.hideTimer = setTimeout(() => this.hideCard(), 200);
       });
 
-      // 简介与热评展开/收起交互 (事件委托)
       this.card.addEventListener("click", (e) => {
         const btn = e.target.closest(".newb-expand-btn");
         if (btn) {
-          // 动态寻找按钮前一个兄弟节点（即被折叠的文本容器）
           const textEl = btn.previousElementSibling;
           if (textEl) {
             const isExpanded = textEl.classList.toggle("is-expanded");
             btn.innerHTML = isExpanded ? "收起 ▴" : "展开 ▾";
-            // 展开后重新计算位置，防止内容撑破屏幕边界
             if (this.currentTarget)
               this.positionCard(
                 this.currentAnchor ||
@@ -206,7 +193,6 @@ class VideoInfoHoverEngine {
           return;
         }
 
-        // AI 总结时间戳点击跳转
         const timeBtn = e.target.closest(".newb-ai-time");
         if (timeBtn && this.currentBvid) {
           const time = timeBtn.dataset.time;
@@ -222,9 +208,6 @@ class VideoInfoHoverEngine {
     return this.card;
   }
 
-  /**
-   * 将秒数格式化为 MM:SS 或 HH:MM:SS
-   */
   formatSeconds(sec) {
     if (!sec || isNaN(sec)) return "00:00";
     sec = Math.floor(sec);
@@ -236,21 +219,12 @@ class VideoInfoHoverEngine {
     return `${pad(m)}:${pad(s)}`;
   }
 
-  /**
-   * 格式化时间戳为标准日期字符串
-   * @param {number} timestamp - 秒级时间戳
-   * @returns {string} 格式化后的时间 (例: 2023-08-01 12:30:00)
-   */
   formatDate(timestamp) {
     const d = new Date(timestamp * 1000);
     const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
-  /**
-   * 渲染真实视频数据到悬浮窗
-   * @param {Object} data - API 返回的视频详情数据
-   */
   renderCard(data) {
     const {
       View: view,
@@ -260,7 +234,6 @@ class VideoInfoHoverEngine {
     } = data;
     const type = VIDEO_TYPE_MAP[view.tid] || "未知";
 
-    // 提取前 6 个标签
     const tagsHtml = tags
       .slice(0, 6)
       .map((t) => `<span class="newb-tag">${t.tag_name}</span>`)
@@ -270,7 +243,6 @@ class VideoInfoHoverEngine {
     const upName = view.owner?.name || "未知UP";
     const { formatNum } = window.newbUtils;
 
-    // --- 1. 构建 AI 总结 HTML ---
     let aiHtml = "";
     if (this.config.aiEnabled) {
       if (
@@ -325,7 +297,6 @@ class VideoInfoHoverEngine {
       }
     }
 
-    // --- 2. 构建热评 HTML ---
     let replyHtml = "";
     if (this.config.replyEnabled) {
       const replies = reply?.replies;
@@ -346,7 +317,6 @@ class VideoInfoHoverEngine {
           const content = hotComment.content;
           let message = content.message;
 
-          // 简单处理表情渲染
           if (content.emote) {
             for (const [key, emote] of Object.entries(content.emote)) {
               message = message.replaceAll(
@@ -356,7 +326,6 @@ class VideoInfoHoverEngine {
             }
           }
 
-          // 移除标题，直接展示内容
           replyHtml = `
                         <div class="newb-hover-reply">
                             <div class="newb-reply-content">
@@ -395,7 +364,6 @@ class VideoInfoHoverEngine {
             </div>
         `;
 
-    // 检查简介与热评是否溢出，若溢出则动态插入"展开"按钮
     requestAnimationFrame(() => {
       const checkOverflow = (selector) => {
         const el = card.querySelector(selector);
@@ -411,62 +379,45 @@ class VideoInfoHoverEngine {
     });
   }
 
-  /**
-   * 智能定位算法：确保悬浮窗始终在可视区域内
-   * @param {DOMRect} targetRect - 触发元素的边界信息
-   */
   positionCard(targetRect) {
     const card = this.getCard();
     const cardRect = card.getBoundingClientRect();
     const { innerWidth: vw, innerHeight: vh } = window;
-    const margin = 15; // 安全边距
+    const margin = 15;
 
-    // 默认展示在目标元素右侧
     let left = targetRect.right + margin;
     let top = targetRect.top;
 
-    // 碰撞检测：若右侧空间不足，尝试移至左侧
     if (left + cardRect.width > vw) {
       left = targetRect.left - cardRect.width - margin;
     }
 
-    // 碰撞检测：若左侧空间也不足，则居中并移至目标元素下方
     if (left < 0) {
       left = Math.max(10, (vw - cardRect.width) / 2);
       top = targetRect.bottom + margin;
     }
 
-    // 碰撞检测：底部溢出修正
     if (top + cardRect.height > vh) {
       top = vh - cardRect.height - margin;
     }
 
-    // 碰撞检测：顶部溢出修正
     if (top < 0) top = margin;
 
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
   }
 
-  /**
-   * 触发悬浮窗显示流程 (骨架屏 -> 数据请求 -> 渲染)
-   * @param {HTMLElement} target - 触发 DOM 节点
-   * @param {string} bvid - 视频 BV 号
-   */
   async showCardFor(target, bvid, anchor = null) {
     const showToken = ++this.showToken;
     this.currentBvid = bvid;
     this.currentTarget = target;
     this.currentAnchor = anchor;
     const card = this.getCard();
-    // 使用悬停瞬间的锚点，避免列表异步重渲染后目标矩形失效
     const anchorRect = anchor || target.getBoundingClientRect();
 
-    // 预判标题行数：根据触发元素的文本长度（B站首页卡片标题通常超过24字会换行）
     const rawTitle = target.innerText || target.title || "";
     const isTwoLines = rawTitle.length > 24;
 
-    // 1. 重置状态并渲染动态骨架屏
     card.classList.remove("is-expanded");
     const skeletonAiHtml = this.config.aiEnabled
       ? `<div class="newb-skeleton newb-skel-ai"></div>`
@@ -486,19 +437,15 @@ class VideoInfoHoverEngine {
     card.classList.add("show");
     this.positionCard(anchorRect);
 
-    // 2. 异步获取数据
     try {
       const data = await window.newbAPI.fetchVideoInfo(bvid);
 
-      // 竞态条件防御：若在请求期间用户移到了其他视频，则丢弃当前结果
       if (this.currentBvid !== bvid || showToken !== this.showToken) return;
 
-      // 3. 并行获取 AI 总结与热评数据 (根据开关状态决定是否发起请求)
       const aid = data.View.aid;
       const cid = data.View.cid;
       const up_mid = data.View.owner.mid;
 
-      // 使用 Promise.allSettled 防止单一接口失败导致整个卡片无法渲染
       const [conclusionRes, replyRes] = await Promise.allSettled([
         this.config.aiEnabled
           ? window.newbAPI.fetchVideoConclusion(bvid, cid, up_mid)
@@ -523,26 +470,19 @@ class VideoInfoHoverEngine {
     }
   }
 
-  /**
-   * 隐藏悬浮窗并清理状态
-   */
   hideCard() {
-    this.showToken++; // 使进行中的请求与渲染失效
+    this.showToken++;
     this.pendingBvid = null;
     this.card?.classList.remove("show");
     this.currentBvid = null;
     this.currentAnchor = null;
   }
 
-  /**
-   * 绑定全局事件监听 (事件委托)
-   */
   bindEvents() {
     document.addEventListener("mouseover", (e) => {
       if (!this.config.enabled) return;
 
       const target = e.target.closest("a");
-      // 过滤无效链接及内部子元素冒泡
       if (
         !target?.href ||
         (e.relatedTarget && target.contains(e.relatedTarget))
@@ -558,15 +498,12 @@ class VideoInfoHoverEngine {
       const bvid = match[1];
       this.hoverBvid = bvid;
 
-      // 若当前已在展示该视频，则取消隐藏动作
       clearTimeout(this.hideTimer);
       if (this.currentBvid === bvid && this.card?.classList.contains("show"))
         return;
 
-      // 同一个视频已在倒计时中时不要反复重置计时器
       if (this.pendingBvid === bvid) return;
 
-      // 启动触发倒计时
       clearTimeout(this.showTimer);
       this.pendingBvid = bvid;
       const anchor = target.getBoundingClientRect();
@@ -591,7 +528,6 @@ class VideoInfoHoverEngine {
       this.hoverBvid = null;
       this.pendingBvid = null;
 
-      // 取消显示动作，启动隐藏倒计时
       clearTimeout(this.showTimer);
       this.hideTimer = setTimeout(() => this.hideCard(), 200);
     });

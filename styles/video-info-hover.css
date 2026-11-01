@@ -1,12 +1,9 @@
-/* --- 悬浮窗基础容器 --- */
 #newb-video-info-card {
-  /* 定位与层级 */
   position: fixed;
   z-index: 999999;
   width: 380px;
   padding: 16px;
 
-  /* 视觉材质 (毛玻璃与阴影) */
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -15,29 +12,24 @@
     0 12px 32px rgba(0, 0, 0, 0.12),
     0 2px 8px rgba(0, 0, 0, 0.04);
 
-  /* 字体与排版 */
   color: #18191c;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* 初始隐藏状态与平滑过渡 */
   opacity: 0;
   transform: translateY(10px) scale(0.98);
   pointer-events: none;
   user-select: text;
-  /* 升级为微弹簧物理曲线，提升弹出时的灵动感 */
   transition:
     opacity 0.2s ease-out,
     transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
 
-  /* 激活显示状态 */
   &.show {
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
   }
 
-  /* --- 骨架屏加载动画 --- */
   .newb-skeleton {
     background: linear-gradient(90deg, #f2f2f3 25%, #e3e5e7 37%, #f2f2f3 63%);
     background-size: 400% 100%;
@@ -57,7 +49,6 @@
     margin-bottom: 8px;
   }
 
-  /* 动态多行标题骨架屏 */
   .newb-skel-title.is-two-lines {
     height: 40px;
   }
@@ -85,12 +76,10 @@
     border-radius: 6px;
   }
 
-  /* --- 3. 真实内容渲染 (Content Rendering) --- */
   .newb-hover-content {
     animation: newb-fade-in 0.3s ease-out forwards;
   }
 
-  /* 文本排版：标题、元数据、简介 */
   .newb-hover-title {
     font-size: 15px;
     font-weight: bold;
@@ -116,14 +105,11 @@
     margin-bottom: 4px;
     display: -webkit-box;
     -webkit-line-clamp: 4;
-    /* WebKit 私有属性 (兼容老版本) */
     line-clamp: 4;
-    /* W3C 标准属性 (消除编辑器警告) */
     -webkit-box-orient: vertical;
     overflow: hidden;
     cursor: text;
 
-    /* 展开完整简介 */
     &.is-expanded {
       -webkit-line-clamp: unset;
       line-clamp: unset;
@@ -131,7 +117,6 @@
     }
   }
 
-  /* 展开/收起交互按钮 */
   .newb-expand-btn {
     font-size: 12px;
     color: #00aeec;
@@ -145,7 +130,6 @@
     }
   }
 
-  /* 标签组：分区与自定义标签 */
   .newb-hover-tags {
     display: flex;
     flex-wrap: wrap;
@@ -174,7 +158,6 @@
     border: 1px solid #e3e5e7;
   }
 
-  /* 数据统计网格 (播放、弹幕、点赞等) */
   .newb-hover-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -201,7 +184,6 @@
     }
   }
 
-  /* --- AI 总结与热评样式 --- */
   .newb-hover-ai,
   .newb-hover-reply {
     margin-top: 12px;
@@ -297,7 +279,6 @@
     color: #61666d;
     line-height: 1.5;
 
-    /* 展开完整热评 */
     &.is-expanded {
       -webkit-line-clamp: unset;
       line-clamp: unset;
@@ -318,7 +299,6 @@
     margin-top: 12px;
   }
 
-  /* 异常状态提示 */
   .newb-hover-loading,
   .newb-hover-error {
     text-align: center;
@@ -328,7 +308,6 @@
   }
 }
 
-/* --- 关键帧动画定义--- */
 @keyframes newb-skeleton-loading {
   0% {
     background-position: 100% 50%;
@@ -340,7 +319,6 @@
 }
 
 @keyframes newb-fade-in {
-  /* 移除 Y 轴位移，仅保留透明度渐变，消除视觉两段跳的割裂感 */
   from {
     opacity: 0;
   }
@@ -350,15 +328,12 @@
   }
 }
 
-/*  Dark♂ 模式适配 */
 :root.newb-night-mode #newb-video-info-card {
-  /* 容器 Dark♂ 化 */
   background: rgba(26, 35, 44, 0.98);
   border-color: rgba(255, 255, 255, 0.1);
   color: #e0e5ea;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 
-  /* 文本 Dark♂ 化 */
   .newb-hover-title {
     color: #e0e5ea;
   }
@@ -371,7 +346,6 @@
     color: #a0abb8;
   }
 
-  /* 标签 Dark♂ 化 */
   .newb-hover-type {
     background: rgba(251, 114, 153, 0.15);
     color: #fb7299;
@@ -384,7 +358,6 @@
     border-color: #324052;
   }
 
-  /* 数据网格 Dark♂ 化 */
   .newb-hover-stats div {
     background: #232e3b;
     color: #8b96a5;
@@ -394,7 +367,6 @@
     }
   }
 
-  /* AI 总结与热评 Dark♂ 化 */
   .newb-hover-ai,
   .newb-hover-reply {
     background: #232e3b;
@@ -424,7 +396,6 @@
     color: #fb7299;
   }
 
-  /* 骨架屏 Dark♂ 化 */
   .newb-skeleton {
     background: linear-gradient(90deg, #232e3b 25%, #324052 37%, #232e3b 63%);
     background-size: 400% 100%;
