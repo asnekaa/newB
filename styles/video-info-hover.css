@@ -128,6 +128,7 @@
   .newb-cover {
     width: 112px;
     min-height: 63px;
+    max-height: 132px;
     flex-shrink: 0;
     align-self: stretch;
     object-fit: cover;
@@ -233,10 +234,9 @@
 
   .newb-hover-tags {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 5px;
     align-items: center;
-    overflow: hidden;
   }
 
   .newb-hover-type {
@@ -258,20 +258,10 @@
     border-radius: 999px;
     font-size: 11px;
     border: 1px solid transparent;
-    max-width: 84px;
-    min-width: 0;
-    flex: 0 1 auto;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .newb-tag-more {
-    flex: 0 0 auto;
-    color: #9499a0;
-    background: transparent;
-    border-color: #e3e5e7;
-    padding: 1px 6px;
   }
 
   .newb-hover-stats {
@@ -527,11 +517,6 @@
     border-color: transparent;
   }
 
-  .newb-tag-more {
-    background: transparent;
-    border-color: #324052;
-    color: #8b96a5;
-  }
 
   .newb-cover {
     background: #232e3b;

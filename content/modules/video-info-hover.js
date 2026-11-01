@@ -242,15 +242,9 @@ class VideoInfoHoverEngine {
     } = data;
     const type = VIDEO_TYPE_MAP[view.tid] || "未知";
 
-    const shownTags = tags.slice(0, 3);
-    const restTagCount = tags.length - shownTags.length;
-    const tagsHtml =
-      shownTags
-        .map((t) => `<span class="newb-tag">${t.tag_name}</span>`)
-        .join("") +
-      (restTagCount > 0
-        ? `<span class="newb-tag newb-tag-more">+${restTagCount}</span>`
-        : "");
+    const tagsHtml = tags
+      .map((t) => `<span class="newb-tag">${t.tag_name}</span>`)
+      .join("");
 
     const timeStr = this.formatDate(view.pubdate);
     const upName = view.owner?.name || "未知UP";
