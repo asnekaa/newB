@@ -144,6 +144,23 @@
   margin-bottom: 10px;
 }
 
+.newb-u-uid {
+  font-size: 11px;
+  color: #9499a0;
+  margin-bottom: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.newb-u-uid:hover {
+  color: #00aeec;
+}
+
+.newb-u-uid.is-copied {
+  color: #2ac864;
+}
+
 .newb-u-name {
   font-size: 16px;
   font-weight: bold;
@@ -331,6 +348,14 @@
 
 :root.newb-night-mode .newb-u-name {
   color: #e0e5ea;
+}
+
+:root.newb-night-mode .newb-u-uid {
+  color: #8b96a5;
+}
+
+:root.newb-night-mode .newb-u-uid:hover {
+  color: #4cc7f0;
 }
 
 :root.newb-night-mode .newb-u-stats b {

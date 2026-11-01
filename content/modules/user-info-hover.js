@@ -147,6 +147,7 @@ class UserInfoHoverEngine {
                         ${levelHtml}
                         ${vipHtml}
                     </div>
+                    <div class="newb-u-uid" title="点击复制 UID">UID: ${mid}</div>
                     ${verifyHtml}
                     <div class="newb-u-stats">
                         <div><span>关注</span><b>${formatNum(following)}</b></div>
@@ -158,6 +159,28 @@ class UserInfoHoverEngine {
                 </div>
             </div>
         `;
+
+    const uidEl = card.querySelector(".newb-u-uid");
+    if (uidEl) {
+      uidEl.addEventListener("click", async () => {
+        const text = String(mid);
+        try {
+          await navigator.clipboard.writeText(text);
+          uidEl.textContent = "已复制 UID";
+          uidEl.classList.add("is-copied");
+          setTimeout(() => {
+            uidEl.textContent = `UID: ${text}`;
+            uidEl.classList.remove("is-copied");
+          }, 1200);
+        } catch {
+          uidEl.textContent = "复制失败";
+          setTimeout(() => {
+            uidEl.textContent = `UID: ${text}`;
+          }, 1200);
+        }
+      });
+    }
+
     this.positionCard(target.getBoundingClientRect());
   }
 
