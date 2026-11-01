@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifestPath = path.join(ROOT, "manifest.json");
 const changelogPath = path.join(ROOT, "CHANGELOG.md");
+const releasePleasePath = path.join(ROOT, ".release-please-manifest.json");
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -109,6 +110,11 @@ if (dryRun) {
 manifest.version = next;
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 fs.writeFileSync(changelogPath, nextChangelog, "utf8");
+fs.writeFileSync(
+  releasePleasePath,
+  `${JSON.stringify({ ".": next }, null, 2)}\n`,
+  "utf8",
+);
 console.log(next);
 if (process.env.GITHUB_OUTPUT) {
   fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${next}\n`);
