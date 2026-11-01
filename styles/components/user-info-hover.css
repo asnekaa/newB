@@ -154,11 +154,27 @@
 }
 
 .newb-u-uid:hover {
-  color: #00aeec;
+  color: #61666d;
 }
 
-.newb-u-uid.is-copied {
+.newb-u-uid-tip {
+  margin-left: 6px;
+  font-size: 11px;
   color: #2ac864;
+  opacity: 0;
+  transform: translateX(-2px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.newb-u-uid-tip.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.newb-u-uid-tip.is-failed {
+  color: #fb7299;
 }
 
 .newb-u-name {
@@ -176,24 +192,20 @@
   font-weight: bold;
 }
 
-.newb-u-level-wrap {
-  display: inline-block;
-  height: 12px;
-  width: 28px;
-  overflow: hidden;
-  position: relative;
-  vertical-align: middle;
-  margin-left: 2px;
-  transform: scale(1.1);
-  transform-origin: left center;
-}
-
-.newb-u-level-img {
-  position: absolute;
-  height: 132px;
-  width: 28px;
-  left: 0;
-  display: block;
+.newb-u-level {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .newb-u-vip {
@@ -355,7 +367,7 @@
 }
 
 :root.newb-night-mode .newb-u-uid:hover {
-  color: #4cc7f0;
+  color: #c0c9d4;
 }
 
 :root.newb-night-mode .newb-u-stats b {

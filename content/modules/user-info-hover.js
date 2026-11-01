@@ -88,8 +88,19 @@ class UserInfoHoverEngine {
     }
     const nameStyle = nameColor ? `style="color: ${nameColor};"` : "";
 
-    const lvSvgUrl = chrome.runtime.getURL("assets/bililv.svg");
-    const levelHtml = `<span class="newb-u-level-wrap"><img class="newb-u-level-img" src="${lvSvgUrl}" style="top: -${level * 12}px;"></span>`;
+    const levelColor =
+      level >= 6
+        ? "#e52fec"
+        : level === 5
+          ? "#ee672a"
+          : level === 4
+            ? "#febb8b"
+            : level === 3
+              ? "#7bcdef"
+              : level === 2
+                ? "#8bd29b"
+                : "#c0c9d4";
+    const levelHtml = `<span class="newb-u-level" style="color: ${levelColor}; border-color: ${levelColor};">LV${level}</span>`;
 
     let verifyHtml = "";
     if (info.official && info.official.role !== 0) {
@@ -147,7 +158,7 @@ class UserInfoHoverEngine {
                         ${levelHtml}
                         ${vipHtml}
                     </div>
-                    <div class="newb-u-uid" title="点击复制 UID">UID: ${mid}</div>
+                    <div class="newb-u-uid" title="点击复制 UID">UID: ${mid}<span class="newb-u-uid-tip"></span></div>
                     ${verifyHtml}
                     <div class="newb-u-stats">
                         <div><span>关注</span><b>${formatNum(following)}</b></div>
@@ -161,22 +172,27 @@ class UserInfoHoverEngine {
         `;
 
     const uidEl = card.querySelector(".newb-u-uid");
-    if (uidEl) {
+    const uidTip = uidEl?.querySelector(".newb-u-uid-tip");
+    if (uidEl && uidTip) {
+      let tipTimer = null;
+      const showTip = (text, ok) => {
+        uidTip.textContent = text;
+        uidTip.classList.toggle("is-failed", !ok);
+        uidTip.classList.add("show");
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => {
+          uidTip.classList.remove("show");
+          setTimeout(() => {
+            uidTip.textContent = "";
+          }, 160);
+        }, 1200);
+      };
       uidEl.addEventListener("click", async () => {
-        const text = String(mid);
         try {
-          await navigator.clipboard.writeText(text);
-          uidEl.textContent = "已复制 UID";
-          uidEl.classList.add("is-copied");
-          setTimeout(() => {
-            uidEl.textContent = `UID: ${text}`;
-            uidEl.classList.remove("is-copied");
-          }, 1200);
+          await navigator.clipboard.writeText(String(mid));
+          showTip("已复制", true);
         } catch {
-          uidEl.textContent = "复制失败";
-          setTimeout(() => {
-            uidEl.textContent = `UID: ${text}`;
-          }, 1200);
+          showTip("复制失败", false);
         }
       });
     }
