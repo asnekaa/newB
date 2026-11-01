@@ -20,7 +20,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  bump-and-release:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +50,7 @@ jobs:
           VERSION="${{ steps.bump.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add manifest.json CHANGELOG.md
+          git add manifest.json CHANGELOG.md .release-please-manifest.json
           git commit -m "chore(release): ${VERSION}"
           git tag "v${VERSION}"
           git push origin HEAD --tags
@@ -59,23 +59,15 @@ jobs:
         if: steps.bump.outputs.skip == 'false'
         run: node package.mjs
 
-      - name: 创建 Release
+      - name: 发布 Release
         if: steps.bump.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ steps.bump.outputs.version }}"
-          NOTES=$(awk -v ver="## [${VERSION}]" '
-            index($0, ver) == 1 { flag=1; print; next }
-            flag && /^## \[/ { exit }
-            flag { print }
-          ' CHANGELOG.md)
-          gh release create "v${VERSION}" \
-            --title "${VERSION}" \
-            --notes "${NOTES:-Release ${VERSION}}" \
-            "newB-${VERSION}.zip"
+          export VERSION="${{ steps.bump.outputs.version }}"
+          node scripts/publish-release.mjs
 
-  upload-asset:
+  publish-tag-release:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -90,20 +82,9 @@ jobs:
       - name: 打包扩展
         run: node package.mjs
 
-      - name: 上传附件
+      - name: 发布 Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          ZIP="newB-${VERSION}.zip"
-          for i in $(seq 1 40); do
-            if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-              gh release upload "$GITHUB_REF_NAME" "$ZIP" --clobber && exit 0
-            fi
-            sleep 5
-          done
-          echo "Release 不存在，自己创建"
-          if gh release create "$GITHUB_REF_NAME" --title "$VERSION" --generate-notes "$ZIP"; then
-            exit 0
-          fi
-          gh release upload "$GITHUB_REF_NAME" "$ZIP" --clobber
+          export VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/publish-release.mjs
