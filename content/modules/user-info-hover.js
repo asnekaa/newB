@@ -88,19 +88,9 @@ class UserInfoHoverEngine {
     }
     const nameStyle = nameColor ? `style="color: ${nameColor};"` : "";
 
-    const levelColor =
-      level >= 6
-        ? "#e52fec"
-        : level === 5
-          ? "#ee672a"
-          : level === 4
-            ? "#febb8b"
-            : level === 3
-              ? "#7bcdef"
-              : level === 2
-                ? "#8bd29b"
-                : "#c0c9d4";
-    const levelHtml = `<span class="newb-u-level" style="color: ${levelColor}; border-color: ${levelColor};">LV${level}</span>`;
+    const lvIndex = Math.max(0, Math.min(6, Number(level) || 0));
+    const lvSpriteUrl = chrome.runtime.getURL("assets/bililv.svg");
+    const levelHtml = `<span class="newb-u-level" title="Lv${lvIndex}" style="--lv: ${lvIndex}; background-image: url('${lvSpriteUrl}');"></span>`;
 
     let verifyHtml = "";
     if (info.official && info.official.role !== 0) {

@@ -154,7 +154,7 @@
 }
 
 .newb-u-uid:hover {
-  color: #61666d;
+  color: #9499a0;
 }
 
 .newb-u-uid-tip {
@@ -193,19 +193,14 @@
 }
 
 .newb-u-level {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  width: 28px;
   height: 14px;
-  padding: 0 4px;
-  border: 1px solid currentColor;
-  border-radius: 3px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
   flex: 0 0 auto;
+  background-repeat: no-repeat;
+  background-size: 42.64px 182.41px;
+  background-position: -1.38px calc(-1.18px - var(--lv, 0) * 16.58px);
+  vertical-align: middle;
 }
 
 .newb-u-vip {
@@ -367,7 +362,7 @@
 }
 
 :root.newb-night-mode .newb-u-uid:hover {
-  color: #c0c9d4;
+  color: #8b96a5;
 }
 
 :root.newb-night-mode .newb-u-stats b {
