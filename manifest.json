@@ -38,7 +38,8 @@
         "styles/features/hide-recommend.css",
         "styles/components/user-info-hover.css",
         "styles/components/video-info-hover.css",
-        "styles/components/dark-mode.css"
+        "styles/components/dark-mode.css",
+        "styles/features/easter-egg.css"
       ],
       "js": [
         "common/bili-api.js",
@@ -49,7 +50,8 @@
         "content/modules/cleanup-engine.js",
         "content/modules/cover-viewer.js",
         "content/modules/user-info-hover.js",
-        "content/modules/video-info-hover.js"
+        "content/modules/video-info-hover.js",
+        "content/modules/easter-egg.js"
       ],
       "run_at": "document_start"
     },

@@ -30,8 +30,6 @@ class ConfigManager {
         infoHoverDelay: 500,
         showIpLocation: false,
         showCoverViewer: false,
-        haoVanDe: false,
-        haoVanDeMap: null,
       },
     };
   }
@@ -78,6 +76,8 @@ class ConfigManager {
         ui.darkMode = ui.nightMode;
       }
       delete ui.nightMode;
+      delete ui.haoVanDe;
+      delete ui.haoVanDeMap;
       config.ui = ui;
     }
 

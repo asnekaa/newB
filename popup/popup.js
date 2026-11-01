@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("ui-show-ip").checked = ui.showIpLocation;
     document.getElementById("ui-show-cover-viewer").checked =
       ui.showCoverViewer ?? false;
-    document.getElementById("ui-hao-van-de").checked = ui.haoVanDe ?? false;
 
     document.getElementById("app-version").textContent = `v${chrome.runtime.getManifest().version}`;
 
@@ -110,15 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const saveAndRefresh = async () => {
     const getVal = (id) => {
-      if (id === "ui-hao-van-de" || id === "master-switch") {
-        const el = document.getElementById(id);
-        return el ? el.checked : false;
-      }
-      const mappedId =
-        config.ui.haoVanDe && config.ui.haoVanDeMap
-          ? config.ui.haoVanDeMap[id] || id
-          : id;
-      const el = document.getElementById(mappedId);
+      const el = document.getElementById(id);
       return el ? el.checked : false;
     };
 
@@ -139,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.ui.userInfoHover = getVal("ui-user-info-hover");
     config.ui.showIpLocation = getVal("ui-show-ip");
     config.ui.showCoverViewer = getVal("ui-show-cover-viewer");
-    config.ui.haoVanDe = getVal("ui-hao-van-de");
 
     const darkModeSelect = document.getElementById(
       "ui-dark-mode-select",
@@ -242,75 +232,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (config.ui?.darkMode?.followSystem) renderAll();
       });
 
-    const haoVanDeToggle = document.getElementById("ui-hao-van-de");
-    const haoVanDeModal = document.getElementById("hao-van-de-modal");
-
-    const switchIds = [
-      "cleanup-enabled",
-      "ui-layout-opt",
-      "ui-hide-hot-search",
-      "ui-hide-recommend",
-      "ui-redirect-home",
-      "ui-hide-home-feed",
-      "ui-video-info-hover",
-      "ui-video-info-hover-ai",
-      "ui-video-info-hover-reply",
-      "ui-user-info-hover",
-      "ui-show-ip",
-      "ui-show-cover-viewer",
-    ];
-
-    const shuffleArray = (array) => {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    };
-
-    const generateMap = () => {
-      const map = {};
-      const shuffled = shuffleArray(switchIds);
-      switchIds.forEach((id, index) => (map[id] = shuffled[index]));
-      return map;
-    };
-
-    if (haoVanDeToggle) {
-      haoVanDeToggle.addEventListener("change", (e) => {
-        if (e.target.checked) {
-          e.target.checked = false;
-          haoVanDeModal.classList.add("show");
-        } else {
-          config.ui.haoVanDe = false;
-          config.ui.haoVanDeMap = null;
-          saveAndRefresh();
-        }
-      });
-    }
-
-    document
-      .getElementById("modal-btn-cancel")
-      ?.addEventListener("click", () => {
-        haoVanDeModal.classList.remove("show");
-      });
-
-    document
-      .getElementById("modal-btn-export")
-      ?.addEventListener("click", () => {
-        configManager.exportJSON(config);
-      });
-
-    document
-      .getElementById("modal-btn-confirm")
-      ?.addEventListener("click", async () => {
-        haoVanDeModal.classList.remove("show");
-        config.ui.haoVanDe = true;
-        config.ui.haoVanDeMap = generateMap();
-        haoVanDeToggle.checked = true;
-        await configManager.saveLocal(config);
-        renderAll();
-      });
   };
 
   init();
