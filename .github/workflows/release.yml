@@ -90,17 +90,20 @@ jobs:
       - name: 打包扩展
         run: node package.mjs
 
-      - name: 上传附件到已存在的 Release
+      - name: 上传附件
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          for i in $(seq 1 20); do
+          ZIP="newB-${VERSION}.zip"
+          for i in $(seq 1 40); do
             if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-              gh release upload "$GITHUB_REF_NAME" "newB-${VERSION}.zip" --clobber
-              exit 0
+              gh release upload "$GITHUB_REF_NAME" "$ZIP" --clobber && exit 0
             fi
             sleep 5
           done
-          echo "没有找到 Release，改为自己创建"
-          gh release create "$GITHUB_REF_NAME"             --title "${VERSION}"             --generate-notes             "newB-${VERSION}.zip"
+          echo "Release 不存在，自己创建"
+          if gh release create "$GITHUB_REF_NAME" --title "$VERSION" --generate-notes "$ZIP"; then
+            exit 0
+          fi
+          gh release upload "$GITHUB_REF_NAME" "$ZIP" --clobber
