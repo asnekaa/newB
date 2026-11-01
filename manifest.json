@@ -39,12 +39,12 @@
         "styles/layout/home.css",
         "styles/layout/search.css",
         "styles/layout/video.css",
-        "styles/hide-home-feed.css",
-        "styles/hide-hot-search.css",
-        "styles/hide-recommend.css",
-        "styles/user-info-hover.css",
-        "styles/video-info-hover.css",
-        "styles/night-mode.css"
+        "styles/features/hide-home-feed.css",
+        "styles/features/hide-hot-search.css",
+        "styles/features/hide-recommend.css",
+        "styles/components/user-info-hover.css",
+        "styles/components/video-info-hover.css",
+        "styles/components/night-mode.css"
       ],
       "js": [
         "common/bili-api.js",
