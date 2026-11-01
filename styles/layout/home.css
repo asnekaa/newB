@@ -107,18 +107,6 @@
     color: var(--newb-dim-text, #00000063) !important;
   }
 
-  .bili-video-card__wrap
-    > .bili-video-card__info
-    > .bili-video-card__info--right
-    > .bili-video-card__info--bottom:hover,
-  .bili-video-card__wrap
-    > .bili-video-card__info
-    > .bili-video-card__info--right
-    > .bili-video-card__info--bottom:hover * {
-    color: #00aeec !important;
-    fill: #00aeec !important;
-  }
-
   a.channel-link {
     place-self: center !important;
   }
