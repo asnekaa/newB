@@ -40,16 +40,20 @@ const hasBreaking = subjects.some((s) => /^[a-z]+(\(.+\))?!:/.test(s) || /BREAKI
 const hasFeat = subjects.some((s) => /^feat(\(.+\))?:/.test(s));
 const hasFix = subjects.some((s) => /^fix(\(.+\))?:/.test(s));
 
-if (!hasBreaking && !hasFeat && !hasFix && subjects.length) {
-  const ignored = subjects.filter((s) => !/^(feat|fix)(\(.+\))?:/.test(s));
-  if (!ignored.length) {
-    console.log("没有 feat / fix 提交，不需要发版");
-    process.exit(0);
-  }
+const explicitBump = bumpArg !== "auto";
+
+if (!explicitBump && !hasBreaking && !hasFeat && !hasFix) {
+  console.log("没有 feat / fix 提交，不需要发版");
+  process.exit(0);
 }
 
-let bump = bumpArg;
-if (bump === "auto") bump = hasBreaking ? "major" : hasFeat ? "minor" : "patch";
+const bump = explicitBump
+  ? bumpArg
+  : hasBreaking
+    ? "major"
+    : hasFeat
+      ? "minor"
+      : "patch";
 
 const [major, minor, patch] = current.split(".").map((n) => Number(n) || 0);
 const next =
