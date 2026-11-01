@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 打包扩展
+        run: node package.mjs
+
+      - name: 创建 Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME 已存在，只上传附件"
+            gh release upload "$GITHUB_REF_NAME" "newB-${VERSION}.zip" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "$VERSION" \
+              --notes-file .github/release-notes.md \
+              "newB-${VERSION}.zip"
+          fi

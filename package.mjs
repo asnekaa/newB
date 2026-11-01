@@ -77,16 +77,20 @@ try {
   const zipPath = path.join(ROOT, zipName);
   if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
 
-  execFileSync(
-    "powershell",
-    [
-      "-NoProfile",
-      "-NonInteractive",
-      "-Command",
-      `Compress-Archive -Path "${path.join(tmp, "*")}" -DestinationPath "${zipPath}" -Force`,
-    ],
-    { stdio: "pipe" },
-  );
+  if (process.platform === "win32") {
+    execFileSync(
+      "powershell",
+      [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        `Compress-Archive -Path "${path.join(tmp, "*")}" -DestinationPath "${zipPath}" -Force`,
+      ],
+      { stdio: "pipe" },
+    );
+  } else {
+    execFileSync("zip", ["-r", "-q", zipPath, ...files], { cwd: ROOT, stdio: "pipe" });
+  }
 
   const size = (fs.statSync(zipPath).size / 1024).toFixed(1);
   console.log(`✓ 已生成 ${zipName}（${files.size} 个文件，${size} KB）`);
