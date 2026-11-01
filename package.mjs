@@ -21,6 +21,8 @@ const add = (p) => {
   if (typeof p === "string" && p.trim()) files.add(p.replace(/\\/g, "/"));
 };
 
+add("manifest.json");
+
 for (const script of manifest.content_scripts ?? []) {
   (script.js ?? []).forEach(add);
   (script.css ?? []).forEach(add);
@@ -56,9 +58,6 @@ for (const html of htmlFiles) {
 }
 
 if (fs.existsSync(path.join(ROOT, "_locales"))) walk(ROOT, "_locales");
-for (const extra of ["LICENSE", "README.md"]) {
-  if (fs.existsSync(path.join(ROOT, extra))) add(extra);
-}
 
 const missing = [...files].filter((f) => !fs.existsSync(path.join(ROOT, f)));
 if (missing.length) {
