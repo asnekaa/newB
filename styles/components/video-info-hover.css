@@ -119,10 +119,6 @@
     animation: newb-fade-in 0.3s ease-out forwards;
   }
 
-  &.is-rerender .newb-hover-content {
-    animation: none;
-  }
-
   .newb-hover-head {
     display: flex;
     gap: 10px;

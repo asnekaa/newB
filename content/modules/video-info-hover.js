@@ -137,6 +137,9 @@ const VIDEO_TYPE_MAP = {
   174: "其他",
 };
 
+const AI_ICON_DARK = `<svg width="16" height="16" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.53976 2.34771C8.17618 1.81736 9.12202 1.90335 9.65237 2.53976L12.1524 5.53976C12.6827 6.17618 12.5967 7.12202 11.9603 7.65237C11.3239 8.18272 10.3781 8.09673 9.84771 7.46031L7.34771 4.46031C6.81736 3.8239 6.90335 2.87805 7.53976 2.34771Z" fill="#18191c"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M21.9602 2.34771C21.3238 1.81736 20.378 1.90335 19.8476 2.53976L17.3476 5.53976C16.8173 6.17618 16.9033 7.12202 17.5397 7.65237C18.1761 8.18272 19.1219 8.09673 19.6523 7.46031L22.1523 4.46031C22.6826 3.8239 22.5967 2.87805 21.9602 2.34771Z" fill="#18191c"></path><path d="M4.78613 14.2091C4.78613 11.9263 6.44484 9.96205 8.71139 9.6903C13.2069 9.1513 16.7678 9.13141 21.3132 9.68091C23.5697 9.95371 25.2147 11.9138 25.2147 14.1868V19.192C25.2147 21.3328 23.7551 23.2258 21.6452 23.5884C16.903 24.4032 13.1705 24.2461 8.55936 23.5137C6.36235 23.1647 4.78613 21.2323 4.78613 19.0078V14.2091Z" fill="#18191c"></path></svg>`;
+const AI_ICON_GRAY = `<svg width="16" height="16" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.53976 2.34771C8.17618 1.81736 9.12202 1.90335 9.65237 2.53976L12.1524 5.53976C12.6827 6.17618 12.5967 7.12202 11.9603 7.65237C11.3239 8.18272 10.3781 8.09673 9.84771 7.46031L7.34771 4.46031C6.81736 3.8239 6.90335 2.87805 7.53976 2.34771Z" fill="#9499a0"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M21.9602 2.34771C21.3238 1.81736 20.378 1.90335 19.8476 2.53976L17.3476 5.53976C16.8173 6.17618 16.9033 7.12202 17.5397 7.65237C18.1761 8.18272 19.1219 8.09673 19.6523 7.46031L22.1523 4.46031C22.6826 3.8239 22.5967 2.87805 21.9602 2.34771Z" fill="#9499a0"></path><path d="M4.78613 14.2091C4.78613 11.9263 6.44484 9.96205 8.71139 9.6903C13.2069 9.1513 16.7678 9.13141 21.3132 9.68091C23.5697 9.95371 25.2147 11.9138 25.2147 14.1868V19.192C25.2147 21.3328 23.7551 23.2258 21.6452 23.5884C16.903 24.4032 13.1705 24.2461 8.55936 23.5137C6.36235 23.1647 4.78613 21.2323 4.78613 19.0078V14.2091Z" fill="#9499a0"></path></svg>`;
+
 class VideoInfoHoverEngine {
   constructor() {
     this.config = { enabled: true, delay: 500 };
@@ -279,40 +282,24 @@ class VideoInfoHoverEngine {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
-  renderCard(data, { pending = false } = {}) {
-    const {
-      View: view,
-      Tags: tags = [],
-      Conclusion: conclusion,
-      Reply: reply,
-    } = data;
-    const type = VIDEO_TYPE_MAP[view.tid] || "未知";
+  buildAiHtml(conclusion, { pending = false } = {}) {
+    if (!this.config.aiEnabled) return "";
+    if (pending && !conclusion) {
+      return `<div class="newb-hover-ai is-pending">AI 总结加载中…</div>`;
+    }
+    if (
+      conclusion &&
+      conclusion.model_result &&
+      conclusion.model_result.result_type !== 0
+    ) {
+      const summary = conclusion.model_result.summary;
+      const outline = conclusion.model_result.outline;
 
-    const tagsHtml = tags
-      .map((t) => `<span class="newb-tag">${t.tag_name}</span>`)
-      .join("");
-
-    const timeStr = this.formatDate(view.pubdate);
-    const upName = view.owner?.name || "未知UP";
-    const { formatNum } = window.newbUtils;
-
-    let aiHtml = "";
-    if (this.config.aiEnabled) {
-      if (pending && !conclusion) {
-        aiHtml = `<div class="newb-hover-ai is-pending">AI 总结加载中…</div>`;
-      } else if (
-        conclusion &&
-        conclusion.model_result &&
-        conclusion.model_result.result_type !== 0
-      ) {
-        const summary = conclusion.model_result.summary;
-        const outline = conclusion.model_result.outline;
-
-        let outlineHtml = "";
-        if (outline && outline.length > 0) {
-          outlineHtml = outline
-            .map(
-              (sec) => `
+      let outlineHtml = "";
+      if (outline && outline.length > 0) {
+        outlineHtml = outline
+          .map(
+            (sec) => `
                         <div class="newb-ai-sec">
                             <div class="newb-ai-sec-title">${sec.title}</div>
                             ${sec.part_outline
@@ -327,83 +314,87 @@ class VideoInfoHoverEngine {
                               .join("")}
                         </div>
                     `,
-            )
-            .join("");
-        }
-        aiHtml = `
+          )
+          .join("");
+      }
+
+      return `
                     <div class="newb-hover-ai">
                         <div class="newb-ai-header">
-                            <svg width="16" height="16" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.53976 2.34771C8.17618 1.81736 9.12202 1.90335 9.65237 2.53976L12.1524 5.53976C12.6827 6.17618 12.5967 7.12202 11.9603 7.65237C11.3239 8.18272 10.3781 8.09673 9.84771 7.46031L7.34771 4.46031C6.81736 3.8239 6.90335 2.87805 7.53976 2.34771Z" fill="#18191c"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M21.9602 2.34771C21.3238 1.81736 20.378 1.90335 19.8476 2.53976L17.3476 5.53976C16.8173 6.17618 16.9033 7.12202 17.5397 7.65237C18.1761 8.18272 19.1219 8.09673 19.6523 7.46031L22.1523 4.46031C22.6826 3.8239 22.5967 2.87805 21.9602 2.34771Z" fill="#18191c"></path><path d="M4.78613 14.2091C4.78613 11.9263 6.44484 9.96205 8.71139 9.6903C13.2069 9.1513 16.7678 9.13141 21.3132 9.68091C23.5697 9.95371 25.2147 11.9138 25.2147 14.1868V19.192C25.2147 21.3328 23.7551 23.2258 21.6452 23.5884C16.903 24.4032 13.1705 24.2461 8.55936 23.5137C6.36235 23.1647 4.78613 21.2323 4.78613 19.0078V14.2091Z" fill="#18191c"></path></svg>
+                            ${AI_ICON_DARK}
                             AI 视频总结
                         </div>
                         <div class="newb-ai-summary">${summary || ""}</div>
                         <div class="newb-ai-outline">${outlineHtml}</div>
                     </div>
                 `;
-      } else {
-        aiHtml = `
+    }
+
+    return `
                     <div class="newb-hover-ai empty">
                         <div class="newb-ai-header">
-                            <svg width="16" height="16" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.53976 2.34771C8.17618 1.81736 9.12202 1.90335 9.65237 2.53976L12.1524 5.53976C12.6827 6.17618 12.5967 7.12202 11.9603 7.65237C11.3239 8.18272 10.3781 8.09673 9.84771 7.46031L7.34771 4.46031C6.81736 3.8239 6.90335 2.87805 7.53976 2.34771Z" fill="#9499a0"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M21.9602 2.34771C21.3238 1.81736 20.378 1.90335 19.8476 2.53976L17.3476 5.53976C16.8173 6.17618 16.9033 7.12202 17.5397 7.65237C18.1761 8.18272 19.1219 8.09673 19.6523 7.46031L22.1523 4.46031C22.6826 3.8239 22.5967 2.87805 21.9602 2.34771Z" fill="#9499a0"></path><path d="M4.78613 14.2091C4.78613 11.9263 6.44484 9.96205 8.71139 9.6903C13.2069 9.1513 16.7678 9.13141 21.3132 9.68091C23.5697 9.95371 25.2147 11.9138 25.2147 14.1868V19.192C25.2147 21.3328 23.7551 23.2258 21.6452 23.5884C16.903 24.4032 13.1705 24.2461 8.55936 23.5137C6.36235 23.1647 4.78613 21.2323 4.78613 19.0078V14.2091Z" fill="#9499a0"></path></svg>
+                            ${AI_ICON_GRAY}
                             该视频暂无 AI 总结
                         </div>
                     </div>
                 `;
+  }
+
+  buildReplyHtml(reply, { pending = false } = {}) {
+    if (!this.config.replyEnabled) return "";
+    if (pending && !reply) {
+      return `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
+    }
+
+    const replies = reply?.replies;
+    if (!(replies && replies.length > 0) && !reply?.top) return "";
+
+    const top = reply?.top;
+    const pinned =
+      (top && !Array.isArray(top) && (top.upper || top.admin)) ||
+      (Array.isArray(top) && top[0]) ||
+      (Array.isArray(reply?.top_replies) && reply.top_replies[0]) ||
+      null;
+    const hotComment =
+      pinned ||
+      (replies && replies.length > 0
+        ? replies.reduce((l, r) => ((l.like || 0) > (r.like || 0) ? l : r))
+        : null);
+
+    if (!hotComment || !hotComment.content) return "";
+
+    const { formatNum } = window.newbUtils;
+    const member = hotComment.member || { uname: "匿名用户" };
+    const content = hotComment.content;
+    let message = content.message || "";
+
+    if (content.emote) {
+      for (const [key, emote] of Object.entries(content.emote)) {
+        message = message.replaceAll(
+          key,
+          `<img src="${emote.url}" style="height: 1.2em; vertical-align: text-bottom; display: inline-block;">`,
+        );
       }
     }
 
-    let replyHtml = "";
-    if (this.config.replyEnabled) {
-      const replies = reply?.replies;
-      if (pending && !reply) {
-        replyHtml = `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
-      } else if ((replies && replies.length > 0) || reply?.top) {
-        const top = reply?.top;
-        const pinned =
-          (top && !Array.isArray(top) && (top.upper || top.admin)) ||
-          (Array.isArray(top) && top[0]) ||
-          (Array.isArray(reply?.top_replies) && reply.top_replies[0]) ||
-          null;
-        let hotComment =
-          pinned ||
-          (replies && replies.length > 0
-            ? replies.reduce((l, r) => ((l.like || 0) > (r.like || 0) ? l : r))
-            : null);
-        if (hotComment && hotComment.content) {
-          const member = hotComment.member || { uname: "匿名用户" };
-          const content = hotComment.content;
-          let message = content.message || "";
-
-          if (content.emote) {
-            for (const [key, emote] of Object.entries(content.emote)) {
-              message = message.replaceAll(
-                key,
-                `<img src="${emote.url}" style="height: 1.2em; vertical-align: text-bottom; display: inline-block;">`,
-              );
-            }
-          }
-
-          const pictures = (Array.isArray(content.pictures)
-            ? content.pictures
-            : []
+    const pictures = (Array.isArray(content.pictures) ? content.pictures : [])
+      .map((pic) =>
+        String(pic?.img_src || pic?.img_src_webp || "")
+          .replace(/^\/\//, "https://")
+          .replace(/^http:\/\//i, "https://"),
+      )
+      .filter(Boolean)
+      .slice(0, 3);
+    const picsHtml = pictures.length
+      ? `<div class="newb-reply-pics">${pictures
+          .map(
+            (src) =>
+              `<img class="newb-reply-pic" src="${src}" alt="" loading="lazy" referrerpolicy="no-referrer">`,
           )
-            .map((pic) =>
-              String(pic?.img_src || pic?.img_src_webp || "")
-                .replace(/^\/\//, "https://")
-                .replace(/^http:\/\//i, "https://"),
-            )
-            .filter(Boolean)
-            .slice(0, 3);
-          const picsHtml = pictures.length
-            ? `<div class="newb-reply-pics">${pictures
-                .map(
-                  (src) =>
-                    `<img class="newb-reply-pic" src="${src}" alt="" loading="lazy" referrerpolicy="no-referrer">`,
-                )
-                .join("")}</div>`
-            : "";
+          .join("")}</div>`
+      : "";
 
-          replyHtml = `
+    return `
                         <div class="newb-hover-reply">
                             <div class="newb-reply-header">
                                 <span class="newb-pill${pinned ? " is-pinned" : ""}">${pinned ? "置顶" : "热评"}</span>
@@ -416,9 +407,20 @@ class VideoInfoHoverEngine {
                             ${picsHtml}
                         </div>
                     `;
-        }
-      }
-    }
+  }
+
+  renderCard(data, { pending = false } = {}) {
+    const { View: view, Tags: tags = [], Conclusion: conclusion, Reply: reply } =
+      data;
+    const type = VIDEO_TYPE_MAP[view.tid] || "未知";
+
+    const tagsHtml = tags
+      .map((t) => `<span class="newb-tag">${t.tag_name}</span>`)
+      .join("");
+
+    const timeStr = this.formatDate(view.pubdate);
+    const upName = view.owner?.name || "未知UP";
+    const { formatNum } = window.newbUtils;
 
     const cover = String(view.pic || "")
       .replace(/^\/\//, "https://")
@@ -464,20 +466,35 @@ class VideoInfoHoverEngine {
                       )
                       .join("")}
                 </div>
-                ${aiHtml}
-                ${replyHtml}
+                <div class="newb-slot-ai">${this.buildAiHtml(conclusion, { pending })}</div>
+                <div class="newb-slot-reply">${this.buildReplyHtml(reply, { pending })}</div>
             </div>
         `;
 
+    this.afterRender();
+  }
+
+  applyExtraSections(data) {
+    const card = this.getCard();
+    const aiSlot = card.querySelector(".newb-slot-ai");
+    const replySlot = card.querySelector(".newb-slot-reply");
+    if (aiSlot) aiSlot.innerHTML = this.buildAiHtml(data.Conclusion);
+    if (replySlot) replySlot.innerHTML = this.buildReplyHtml(data.Reply);
+    this.afterRender();
+  }
+
+  afterRender() {
+    const card = this.getCard();
     requestAnimationFrame(() => {
       const checkOverflow = (selector) => {
         const el = card.querySelector(selector);
-        if (el && el.scrollHeight > el.clientHeight) {
-          el.insertAdjacentHTML(
-            "afterend",
-            `<div class="newb-expand-btn">展开 ▾</div>`,
-          );
-        }
+        if (!el || el.scrollHeight <= el.clientHeight) return;
+        const next = el.nextElementSibling;
+        if (next && next.classList.contains("newb-expand-btn")) return;
+        el.insertAdjacentHTML(
+          "afterend",
+          `<div class="newb-expand-btn">展开 ▾</div>`,
+        );
       };
       checkOverflow(".newb-hover-desc");
       checkOverflow(".newb-reply-content");
@@ -603,9 +620,7 @@ class VideoInfoHoverEngine {
         conclusionRes.status === "fulfilled" ? conclusionRes.value : null;
       data.Reply = replyRes.status === "fulfilled" ? replyRes.value : null;
 
-      card.classList.add("is-rerender");
-      this.renderCard(data);
-      requestAnimationFrame(() => card.classList.remove("is-rerender"));
+      this.applyExtraSections(data);
       this.positionCard(anchorRect);
     } catch (e) {
       console.error("newB: 视频信息获取失败", e);
