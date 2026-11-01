@@ -1,0 +1,16 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "newB",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

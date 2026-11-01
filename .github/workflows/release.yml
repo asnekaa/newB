@@ -102,4 +102,5 @@ jobs:
             fi
             sleep 5
           done
-          echo "没有找到 Release ${GITHUB_REF_NAME}，跳过"
+          echo "没有找到 Release，改为自己创建"
+          gh release create "$GITHUB_REF_NAME"             --title "${VERSION}"             --generate-notes             "newB-${VERSION}.zip"
