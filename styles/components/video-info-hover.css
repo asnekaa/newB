@@ -471,9 +471,17 @@
   .newb-hover-loading,
   .newb-hover-error {
     text-align: center;
-    padding: 20px 0;
+    padding: 20px 0 6px;
     color: #fb7299;
     font-size: 14px;
+  }
+
+  .newb-hover-error-detail {
+    text-align: center;
+    color: #9499a0;
+    font-size: 11px;
+    word-break: break-all;
+    padding-bottom: 12px;
   }
 }
 

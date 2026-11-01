@@ -604,8 +604,13 @@ class VideoInfoHoverEngine {
       requestAnimationFrame(() => card.classList.remove("is-rerender"));
       this.positionCard(anchorRect);
     } catch (e) {
+      console.error("newB: 视频信息获取失败", e);
       if (showToken === this.showToken) {
-        card.innerHTML = `<div class="newb-hover-error">获取信息失败</div>`;
+        const reason = String(e?.message || e).slice(0, 80);
+        card.innerHTML = `
+                    <div class="newb-hover-error">获取信息失败</div>
+                    <div class="newb-hover-error-detail">${reason}</div>
+                `;
       }
     }
   }

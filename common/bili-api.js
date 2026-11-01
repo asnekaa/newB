@@ -170,7 +170,11 @@ const biliMD5 = (function () {
 const NEWB_FETCH_TIMEOUT_MS = 8000;
 
 function newbFetch(url, options = {}, timeoutMs = NEWB_FETCH_TIMEOUT_MS) {
-  return fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(timer),
+  );
 }
 
 class BiliAPI {
