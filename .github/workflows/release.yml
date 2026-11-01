@@ -1,19 +1,87 @@
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "版本类型（auto = 按提交自动判断）"
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+        default: auto
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 计算并写入新版本
+        id: bump
+        run: |
+          node scripts/release.mjs --bump=${{ inputs.bump }}
+          if git diff --quiet; then
+            echo "没有可发布的改动，跳过"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./manifest.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: 提交、打 tag
+        if: steps.bump.outputs.skip == 'false'
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json CHANGELOG.md
+          git commit -m "chore(release): ${VERSION}"
+          git tag "v${VERSION}"
+          git push origin HEAD --tags
+
+      - name: 打包扩展
+        if: steps.bump.outputs.skip == 'false'
+        run: node package.mjs
+
+      - name: 创建 Release
+        if: steps.bump.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          NOTES=$(awk -v ver="## [${VERSION}]" '
+            index($0, ver) == 1 { flag=1; print; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md)
+          gh release create "v${VERSION}" \
+            --title "${VERSION}" \
+            --notes "${NOTES:-Release ${VERSION}}" \
+            "newB-${VERSION}.zip"
+
+  upload-asset:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -22,22 +90,16 @@ jobs:
       - name: 打包扩展
         run: node package.mjs
 
-      - name: 等待 Release 并上传附件
+      - name: 上传附件到已存在的 Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          # release-please 会先创建 Release（带自动生成的 changelog），这里等它出现再挂 zip
           for i in $(seq 1 20); do
             if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-              echo "Release 已存在，上传 zip"
               gh release upload "$GITHUB_REF_NAME" "newB-${VERSION}.zip" --clobber
               exit 0
             fi
             sleep 5
           done
-          echo "等待超时，改为自己创建 Release"
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$VERSION" \
-            --generate-notes \
-            "newB-${VERSION}.zip"
+          echo "没有找到 Release ${GITHUB_REF_NAME}，跳过"
