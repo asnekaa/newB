@@ -189,6 +189,14 @@ class VideoInfoHoverEngine {
                 this.currentAnchor ||
                   this.currentTarget.getBoundingClientRect(),
               );
+            const card = this.getCard();
+            const btnRect = btn.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            if (btnRect.bottom > cardRect.bottom - 8) {
+              card.scrollTop += btnRect.bottom - (cardRect.bottom - 8);
+            } else if (btnRect.top < cardRect.top + 8) {
+              card.scrollTop -= cardRect.top + 8 - btnRect.top;
+            }
           }
           return;
         }
@@ -463,6 +471,7 @@ class VideoInfoHoverEngine {
             ${skeletonAiHtml}
         `;
     card.classList.add("show");
+    card.scrollTop = 0;
     this.positionCard(anchorRect);
 
     try {
