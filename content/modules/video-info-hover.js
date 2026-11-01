@@ -459,6 +459,7 @@ class VideoInfoHoverEngine {
                       ["硬币", view.stat.coin],
                       ["收藏", view.stat.favorite],
                       ["分享", view.stat.share],
+                      ["评论", view.stat.reply],
                     ]
                       .map(
                         ([label, value]) =>
