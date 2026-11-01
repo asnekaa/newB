@@ -203,6 +203,10 @@
   vertical-align: middle;
 }
 
+.newb-u-level.is-senior {
+  width: 40px;
+}
+
 .newb-u-vip {
   font-size: 10px;
   font-weight: bold;

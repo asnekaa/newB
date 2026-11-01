@@ -88,9 +88,10 @@ class UserInfoHoverEngine {
     }
     const nameStyle = nameColor ? `style="color: ${nameColor};"` : "";
 
-    const lvIndex = Math.max(0, Math.min(6, Number(level) || 0));
+    const lvLevel = Math.max(0, Math.min(6, Number(level) || 0));
+    const lvIndex = lvLevel >= 6 && info.is_senior_member === 1 ? 10 : lvLevel;
     const lvSpriteUrl = chrome.runtime.getURL("assets/bililv.svg");
-    const levelHtml = `<span class="newb-u-level" title="Lv${lvIndex}" style="--lv: ${lvIndex}; background-image: url('${lvSpriteUrl}');"></span>`;
+    const levelHtml = `<span class="newb-u-level${lvIndex === 10 ? " is-senior" : ""}" title="Lv${lvLevel}${lvIndex === 10 ? " 硬核会员" : ""}" style="--lv: ${lvIndex}; background-image: url('${lvSpriteUrl}');"></span>`;
 
     let verifyHtml = "";
     if (info.official && info.official.role !== 0) {

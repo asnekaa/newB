@@ -214,8 +214,41 @@ class VideoInfoHoverEngine {
               "_blank",
             );
           }
+          return;
+        }
+
+        const cover = e.target.closest(".newb-cover");
+        if (cover) {
+          if (this.currentBvid) {
+            window.open(
+              `https://www.bilibili.com/video/${this.currentBvid}`,
+              "_blank",
+              "noopener",
+            );
+          }
+          return;
+        }
+
+        const pic = e.target.closest(".newb-reply-pic");
+        if (pic) {
+          window.open(pic.src, "_blank", "noopener");
         }
       });
+
+      this.card.addEventListener(
+        "error",
+        (e) => {
+          const el = e.target;
+          if (!el || !el.classList) return;
+          if (
+            el.classList.contains("newb-cover") ||
+            el.classList.contains("newb-reply-pic")
+          ) {
+            el.remove();
+          }
+        },
+        true,
+      );
     }
     return this.card;
   }
@@ -499,27 +532,6 @@ class VideoInfoHoverEngine {
       };
       checkOverflow(".newb-hover-desc");
       checkOverflow(".newb-reply-content");
-
-      card.querySelectorAll(".newb-reply-pic").forEach((pic) => {
-        pic.addEventListener("error", () => pic.remove());
-        pic.addEventListener("click", () =>
-          window.open(pic.src, "_blank", "noopener"),
-        );
-      });
-
-      const coverEl = card.querySelector(".newb-cover");
-      if (coverEl) {
-        coverEl.addEventListener("error", () => coverEl.remove());
-        coverEl.addEventListener("click", () => {
-          if (this.currentBvid) {
-            window.open(
-              `https://www.bilibili.com/video/${this.currentBvid}`,
-              "_blank",
-              "noopener",
-            );
-          }
-        });
-      }
     });
   }
 

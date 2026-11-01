@@ -125,6 +125,21 @@
     transition: color 0.2s;
   }
 
+  .bili-video-card__info--bottom a:hover,
+  .bili-video-card__info--bottom a:hover *,
+  .bili-video-card__info--author:hover,
+  .bili-video-card__info--author:hover *,
+  .bili-video-card__info--author:hover span,
+  .video-list-item .up-name:hover,
+  .video-list-item .up-name:hover *,
+  .bili-video-card__info--tit:hover,
+  .video-list-item .title:hover,
+  .bili-video-card__info a:hover,
+  .bili-video-card__info a:hover * {
+    color: #00aeec !important;
+    fill: #00aeec !important;
+  }
+
   .bili-video-card__info--tit:hover,
   .video-list-item .title:hover,
   .bili-video-card__info--author:hover,
