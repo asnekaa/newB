@@ -292,6 +292,22 @@
     margin-right: 4px;
   }
 
+  .newb-reply-pics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .newb-reply-pic {
+    height: 54px;
+    max-width: 32%;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f1f2f3;
+    cursor: zoom-in;
+  }
+
   .newb-skel-ai {
     height: 80px;
     width: 100%;

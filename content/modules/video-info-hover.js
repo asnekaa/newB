@@ -326,12 +326,33 @@ class VideoInfoHoverEngine {
             }
           }
 
+          const pictures = (Array.isArray(content.pictures)
+            ? content.pictures
+            : []
+          )
+            .map((pic) =>
+              String(pic?.img_src || pic?.img_src_webp || "")
+                .replace(/^\/\//, "https://")
+                .replace(/^http:\/\//i, "https://"),
+            )
+            .filter(Boolean)
+            .slice(0, 3);
+          const picsHtml = pictures.length
+            ? `<div class="newb-reply-pics">${pictures
+                .map(
+                  (src) =>
+                    `<img class="newb-reply-pic" src="${src}" alt="" loading="lazy" referrerpolicy="no-referrer">`,
+                )
+                .join("")}</div>`
+            : "";
+
           replyHtml = `
                         <div class="newb-hover-reply">
                             <div class="newb-reply-content">
                                 <span class="newb-reply-user">${member.uname}:</span>
                                 <span class="newb-reply-text">${message}</span>
                             </div>
+                            ${picsHtml}
                         </div>
                     `;
         }
@@ -376,6 +397,13 @@ class VideoInfoHoverEngine {
       };
       checkOverflow(".newb-hover-desc");
       checkOverflow(".newb-reply-content");
+
+      card.querySelectorAll(".newb-reply-pic").forEach((pic) => {
+        pic.addEventListener("error", () => pic.remove());
+        pic.addEventListener("click", () =>
+          window.open(pic.src, "_blank", "noopener"),
+        );
+      });
     });
   }
 
