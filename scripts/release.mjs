@@ -90,7 +90,7 @@ const section = [
 
 let changelog = "";
 if (fs.existsSync(changelogPath)) {
-  changelog = fs.readFileSync(changelogPath, "utf8");
+  changelog = fs.readFileSync(changelogPath, "utf8").replace(/\r\n/g, "\n");
 } else {
   changelog = "# Changelog\n\n本项目所有值得注意的变更都会记录在这里，格式参考 Keep a Changelog。\n";
 }
