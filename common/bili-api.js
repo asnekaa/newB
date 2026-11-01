@@ -166,6 +166,13 @@ const biliMD5 = (function () {
   };
 })();
 
+
+const NEWB_FETCH_TIMEOUT_MS = 8000;
+
+function newbFetch(url, options = {}, timeoutMs = NEWB_FETCH_TIMEOUT_MS) {
+  return fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) });
+}
+
 class BiliAPI {
   constructor() {
     this.wbiKeys = null;
@@ -211,7 +218,7 @@ class BiliAPI {
     }
 
     try {
-      const res = await fetch("https://api.bilibili.com/x/web-interface/nav");
+      const res = await newbFetch("https://api.bilibili.com/x/web-interface/nav");
       const { data } = await res.json();
       const { img_url, sub_url } = data.wbi_img;
 
@@ -238,7 +245,7 @@ class BiliAPI {
     if (!keys) throw new Error("Wbi keys fetch failed");
 
     const query = this.encWbi({ bvid }, keys.img_key, keys.sub_key);
-    const res = await fetch(
+    const res = await newbFetch(
       `https://api.bilibili.com/x/web-interface/view/detail?${query}`,
       { credentials: "include" },
     );
@@ -260,7 +267,7 @@ class BiliAPI {
       keys.img_key,
       keys.sub_key,
     );
-    const res = await fetch(
+    const res = await newbFetch(
       `https://api.bilibili.com/x/web-interface/view/conclusion/get?${query}`,
       { credentials: "include" },
     );
@@ -280,7 +287,7 @@ class BiliAPI {
       keys.img_key,
       keys.sub_key,
     );
-    const res = await fetch(
+    const res = await newbFetch(
       `https://api.bilibili.com/x/v2/reply/wbi/main?${query}`,
       { credentials: "include" },
     );
@@ -299,16 +306,16 @@ class BiliAPI {
     const relQuery = this.encWbi({ mid }, keys.img_key, keys.sub_key);
 
     const [infoRes, statRes, upstatRes, relRes] = await Promise.allSettled([
-      fetch(`https://api.bilibili.com/x/space/wbi/acc/info?${infoQuery}`, {
+      newbFetch(`https://api.bilibili.com/x/space/wbi/acc/info?${infoQuery}`, {
         credentials: "include",
       }).then((r) => r.json()),
-      fetch(`https://api.bilibili.com/x/relation/stat?vmid=${mid}`, {
+      newbFetch(`https://api.bilibili.com/x/relation/stat?vmid=${mid}`, {
         credentials: "include",
       }).then((r) => r.json()),
-      fetch(`https://api.bilibili.com/x/space/upstat?mid=${mid}`, {
+      newbFetch(`https://api.bilibili.com/x/space/upstat?mid=${mid}`, {
         credentials: "include",
       }).then((r) => r.json()),
-      fetch(`https://api.bilibili.com/x/space/wbi/acc/relation?${relQuery}`, {
+      newbFetch(`https://api.bilibili.com/x/space/wbi/acc/relation?${relQuery}`, {
         credentials: "include",
       }).then((r) => r.json()),
     ]);
@@ -344,7 +351,7 @@ class BiliAPI {
     formData.append("re_src", 11);
     formData.append("csrf", csrf);
 
-    const res = await fetch("https://api.bilibili.com/x/relation/modify", {
+    const res = await newbFetch("https://api.bilibili.com/x/relation/modify", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -356,7 +363,7 @@ class BiliAPI {
   }
 
   async getOnlineTotal(aid, cid, bvid) {
-    const res = await fetch(
+    const res = await newbFetch(
       `https://api.bilibili.com/x/player/online/total?aid=${aid}&cid=${cid}&bvid=${bvid}`,
     );
 

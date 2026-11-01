@@ -119,6 +119,10 @@
     animation: newb-fade-in 0.3s ease-out forwards;
   }
 
+  &.is-rerender .newb-hover-content {
+    animation: none;
+  }
+
   .newb-hover-head {
     display: flex;
     gap: 10px;
@@ -341,6 +345,13 @@
     text-align: center;
   }
 
+  .newb-hover-ai.is-pending,
+  .newb-hover-reply.is-pending {
+    color: #9499a0;
+    text-align: center;
+    animation: newb-pending-pulse 1.2s ease-in-out infinite;
+  }
+
   .newb-ai-header,
   .newb-reply-header {
     font-weight: 600;
@@ -463,6 +474,17 @@
     padding: 20px 0;
     color: #fb7299;
     font-size: 14px;
+  }
+}
+
+@keyframes newb-pending-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
   }
 }
 

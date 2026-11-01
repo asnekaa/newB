@@ -149,6 +149,7 @@ class VideoInfoHoverEngine {
     this.hoverBvid = null;
     this.pendingBvid = null;
     this.showToken = 0;
+    this.cache = new Map();
 
     this.bindEvents();
   }
@@ -216,6 +217,51 @@ class VideoInfoHoverEngine {
     return this.card;
   }
 
+  cacheGet(key, ttlMs) {
+    const hit = this.cache.get(key);
+    if (!hit) return null;
+    if (Date.now() - hit.at > ttlMs) {
+      this.cache.delete(key);
+      return null;
+    }
+    return hit.value;
+  }
+
+  cacheSet(key, value) {
+    if (this.cache.size > 120) {
+      const oldest = [...this.cache.entries()].sort((a, b) => a[1].at - b[1].at)[0];
+      if (oldest) this.cache.delete(oldest[0]);
+    }
+    this.cache.set(key, { value, at: Date.now() });
+  }
+
+  async fetchInfoCached(bvid) {
+    const key = `info:${bvid}`;
+    const hit = this.cacheGet(key, 120000);
+    if (hit) return hit;
+    const data = await window.newbAPI.fetchVideoInfo(bvid);
+    this.cacheSet(key, data);
+    return data;
+  }
+
+  async fetchConclusionCached(bvid, cid, upMid) {
+    const key = `conclusion:${bvid}`;
+    const hit = this.cacheGet(key, 300000);
+    if (hit) return hit;
+    const data = await window.newbAPI.fetchVideoConclusion(bvid, cid, upMid);
+    this.cacheSet(key, data);
+    return data;
+  }
+
+  async fetchReplyCached(aid) {
+    const key = `reply:${aid}`;
+    const hit = this.cacheGet(key, 120000);
+    if (hit) return hit;
+    const data = await window.newbAPI.fetchVideoReply(aid);
+    this.cacheSet(key, data);
+    return data;
+  }
+
   formatSeconds(sec) {
     if (!sec || isNaN(sec)) return "00:00";
     sec = Math.floor(sec);
@@ -233,7 +279,7 @@ class VideoInfoHoverEngine {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
-  renderCard(data) {
+  renderCard(data, { pending = false } = {}) {
     const {
       View: view,
       Tags: tags = [],
@@ -252,7 +298,9 @@ class VideoInfoHoverEngine {
 
     let aiHtml = "";
     if (this.config.aiEnabled) {
-      if (
+      if (pending && !conclusion) {
+        aiHtml = `<div class="newb-hover-ai is-pending">AI 总结加载中…</div>`;
+      } else if (
         conclusion &&
         conclusion.model_result &&
         conclusion.model_result.result_type !== 0
@@ -307,7 +355,9 @@ class VideoInfoHoverEngine {
     let replyHtml = "";
     if (this.config.replyEnabled) {
       const replies = reply?.replies;
-      if ((replies && replies.length > 0) || reply?.top) {
+      if (pending && !reply) {
+        replyHtml = `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
+      } else if ((replies && replies.length > 0) || reply?.top) {
         const top = reply?.top;
         const pinned =
           (top && !Array.isArray(top) && (top.upper || top.admin)) ||
@@ -521,21 +571,26 @@ class VideoInfoHoverEngine {
     this.positionCard(anchorRect);
 
     try {
-      const data = await window.newbAPI.fetchVideoInfo(bvid);
+      const data = { ...(await this.fetchInfoCached(bvid)) };
 
       if (this.currentBvid !== bvid || showToken !== this.showToken) return;
 
       const aid = data.View.aid;
       const cid = data.View.cid;
       const up_mid = data.View.owner.mid;
+      const wantsAi = this.config.aiEnabled;
+      const wantsReply = this.config.replyEnabled;
+
+      this.renderCard(data, { pending: wantsAi || wantsReply });
+      this.positionCard(anchorRect);
+
+      if (!wantsAi && !wantsReply) return;
 
       const [conclusionRes, replyRes] = await Promise.allSettled([
-        this.config.aiEnabled
-          ? window.newbAPI.fetchVideoConclusion(bvid, cid, up_mid)
+        wantsAi
+          ? this.fetchConclusionCached(bvid, cid, up_mid)
           : Promise.resolve(null),
-        this.config.replyEnabled
-          ? window.newbAPI.fetchVideoReply(aid)
-          : Promise.resolve(null),
+        wantsReply ? this.fetchReplyCached(aid) : Promise.resolve(null),
       ]);
 
       if (this.currentBvid !== bvid || showToken !== this.showToken) return;
@@ -544,7 +599,9 @@ class VideoInfoHoverEngine {
         conclusionRes.status === "fulfilled" ? conclusionRes.value : null;
       data.Reply = replyRes.status === "fulfilled" ? replyRes.value : null;
 
+      card.classList.add("is-rerender");
       this.renderCard(data);
+      requestAnimationFrame(() => card.classList.remove("is-rerender"));
       this.positionCard(anchorRect);
     } catch (e) {
       if (showToken === this.showToken) {
