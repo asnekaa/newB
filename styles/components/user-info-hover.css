@@ -342,72 +342,72 @@
   }
 }
 
-:root.newb-night-mode #newb-user-info-card {
+:root.newb-dark-mode #newb-user-info-card {
   background: rgba(26, 35, 44, 0.98);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
-:root.newb-night-mode .newb-u-banner {
+:root.newb-dark-mode .newb-u-banner {
   background-color: #232e3b;
 }
 
-:root.newb-night-mode .newb-u-avatar {
+:root.newb-dark-mode .newb-u-avatar {
   border-color: #1a232c;
   background: #232e3b;
 }
 
-:root.newb-night-mode .newb-u-name {
+:root.newb-dark-mode .newb-u-name {
   color: #e0e5ea;
 }
 
-:root.newb-night-mode .newb-u-uid {
+:root.newb-dark-mode .newb-u-uid {
   color: #8b96a5;
 }
 
-:root.newb-night-mode .newb-u-uid:hover {
+:root.newb-dark-mode .newb-u-uid:hover {
   color: #8b96a5;
 }
 
-:root.newb-night-mode .newb-u-stats b {
+:root.newb-dark-mode .newb-u-stats b {
   color: #e0e5ea;
 }
 
-:root.newb-night-mode .newb-u-sign {
+:root.newb-dark-mode .newb-u-sign {
   background: #232e3b;
   color: #a0abb8;
 }
 
-:root.newb-night-mode .btn-msg {
+:root.newb-dark-mode .btn-msg {
   background: #1a232c;
   border-color: #324052;
   color: #a0abb8;
 }
 
-:root.newb-night-mode .btn-block {
+:root.newb-dark-mode .btn-block {
   background: #1a232c;
   border-color: rgba(251, 114, 153, 0.3);
 }
 
-:root.newb-night-mode .btn-followed {
+:root.newb-dark-mode .btn-followed {
   background: #232e3b;
   color: #a0abb8;
 }
 
-:root.newb-night-mode .btn-followed:hover {
+:root.newb-dark-mode .btn-followed:hover {
   background: #2b3846;
 }
 
-:root.newb-night-mode .btn-block:hover {
+:root.newb-dark-mode .btn-block:hover {
   background: rgba(251, 114, 153, 0.15);
 }
 
-:root.newb-night-mode .btn-disabled {
+:root.newb-dark-mode .btn-disabled {
   background: #232e3b;
   color: #61666d;
 }
 
-:root.newb-night-mode .newb-skeleton {
+:root.newb-dark-mode .newb-skeleton {
   background: linear-gradient(90deg, #232e3b 25%, #324052 37%, #232e3b 63%);
   background-size: 400% 100%;
 }

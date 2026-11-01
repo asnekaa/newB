@@ -1,4 +1,4 @@
-:root.newb-night-mode {
+:root.newb-dark-mode {
   --newb-bottom-bg: #1a232c !important;
   --newb-editor-bg: #1a232c !important;
   --newb-editor-hover-bg: #232e3b !important;
@@ -123,31 +123,6 @@
     color: #8b96a5 !important;
     fill: #8b96a5 !important;
     transition: color 0.2s;
-  }
-
-  .bili-video-card__info--bottom a:hover,
-  .bili-video-card__info--bottom a:hover *,
-  .bili-video-card__info--author:hover,
-  .bili-video-card__info--author:hover *,
-  .bili-video-card__info--author:hover span,
-  .video-list-item .up-name:hover,
-  .video-list-item .up-name:hover *,
-  .bili-video-card__info--tit:hover,
-  .video-list-item .title:hover,
-  .bili-video-card__info a:hover,
-  .bili-video-card__info a:hover * {
-    color: #00aeec !important;
-    fill: #00aeec !important;
-  }
-
-  .bili-video-card__info--tit:hover,
-  .video-list-item .title:hover,
-  .bili-video-card__info--author:hover,
-  .bili-video-card__info--bottom a:hover,
-  .bili-video-card__info--bottom a:hover *,
-  .video-list-item .up-name:hover {
-    color: #00aeec !important;
-    fill: #00aeec !important;
   }
 
   #danmukuBox,

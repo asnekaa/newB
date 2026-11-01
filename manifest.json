@@ -38,7 +38,7 @@
         "styles/features/hide-recommend.css",
         "styles/components/user-info-hover.css",
         "styles/components/video-info-hover.css",
-        "styles/components/night-mode.css"
+        "styles/components/dark-mode.css"
       ],
       "js": [
         "common/bili-api.js",

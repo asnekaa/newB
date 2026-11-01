@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ui.showCoverViewer ?? false;
     document.getElementById("ui-hao-van-de").checked = ui.haoVanDe ?? false;
 
-    const nm = ui.nightMode || {
+    const nm = ui.darkMode || {
       enabled: true,
       followSystem: true,
       start: "18:00",
@@ -52,11 +52,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       else if (nm.start === "00:00" && nm.end === "23:59") mode = "on";
       else mode = "custom";
     }
-    document.getElementById("ui-night-mode-select").value = mode;
-    document.getElementById("ui-night-start").value = nm.start;
-    document.getElementById("ui-night-end").value = nm.end;
+    document.getElementById("ui-dark-mode-select").value = mode;
+    document.getElementById("ui-dark-start").value = nm.start;
+    document.getElementById("ui-dark-end").value = nm.end;
 
-    const timeRangeEl = document.getElementById("night-time-range");
+    const timeRangeEl = document.getElementById("dark-time-range");
     if (mode === "custom") {
       timeRangeEl.style.maxHeight = "40px";
       timeRangeEl.style.opacity = "1";
@@ -139,21 +139,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.ui.showCoverViewer = getVal("ui-show-cover-viewer");
     config.ui.haoVanDe = getVal("ui-hao-van-de");
 
-    const nightModeSelect = document.getElementById(
-      "ui-night-mode-select",
+    const darkModeSelect = document.getElementById(
+      "ui-dark-mode-select",
     ).value;
-    config.ui.nightMode = {
-      mode: nightModeSelect,
-      enabled: nightModeSelect !== "off",
-      followSystem: nightModeSelect === "system",
+    config.ui.darkMode = {
+      mode: darkModeSelect,
+      enabled: darkModeSelect !== "off",
+      followSystem: darkModeSelect === "system",
       start:
-        nightModeSelect === "on"
+        darkModeSelect === "on"
           ? "00:00"
-          : document.getElementById("ui-night-start").value,
+          : document.getElementById("ui-dark-start").value,
       end:
-        nightModeSelect === "on"
+        darkModeSelect === "on"
           ? "23:59"
-          : document.getElementById("ui-night-end").value,
+          : document.getElementById("ui-dark-end").value,
     };
 
     await configManager.saveLocal(config);
@@ -164,9 +164,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const inputs = [
       "master-switch",
       "cleanup-enabled",
-      "ui-night-mode-select",
-      "ui-night-start",
-      "ui-night-end",
+      "ui-dark-mode-select",
+      "ui-dark-start",
+      "ui-dark-end",
       "ui-layout-opt",
       "ui-hide-hot-search",
       "ui-hide-recommend",
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", () => {
-        if (config.ui?.nightMode?.followSystem) renderAll();
+        if (config.ui?.darkMode?.followSystem) renderAll();
       });
 
     const haoVanDeToggle = document.getElementById("ui-hao-van-de");

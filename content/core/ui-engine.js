@@ -1,6 +1,6 @@
 class UIEngine {
   constructor() {
-    this.nightModeClass = "newb-night-mode";
+    this.darkModeClass = "newb-dark-mode";
     this.namespaceClass = "newb-optimized-layout";
     this.storageKeyLayout = "newb_layout_opt";
     this.storageKeyRedirect = "newb_redirect_home";
@@ -15,21 +15,24 @@ class UIEngine {
       return;
     }
 
-    this.currentNightModeConfig = null;
+    this.currentDarkModeConfig = null;
     this.systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     this.dynHotSearchObserver = null;
     this.dynHotSearchTimer = null;
 
     this.systemThemeQuery.addEventListener("change", (e) => {
       if (
-        this.currentNightModeConfig?.enabled &&
-        this.currentNightModeConfig?.followSystem
+        this.currentDarkModeConfig?.enabled &&
+        this.currentDarkModeConfig?.followSystem
       ) {
-        this.applyNightMode(e.matches);
+        this.applyDarkMode(e.matches);
       }
     });
 
-    if (localStorage.getItem("newb_night_mode_active") === "true") {
+    if (
+      localStorage.getItem("newb_dark_mode_active") === "true" ||
+      localStorage.getItem("newb_night_mode_active") === "true"
+    ) {
       const root = document.documentElement;
       root.setAttribute("data-theme", "dark");
       root.classList.add("dark", "bili_dark");
@@ -49,7 +52,7 @@ class UIEngine {
     const uiCfg = config.ui || {};
 
     const nm = isMasterOn
-      ? uiCfg.nightMode || { enabled: false }
+      ? uiCfg.darkMode || { enabled: false }
       : { enabled: false };
     const isLayoutEnabled = isMasterOn && !!uiCfg.layoutOptimization;
     const isHideHotSearch = isMasterOn && !!uiCfg.hideHotSearch;
@@ -85,7 +88,7 @@ class UIEngine {
 
     this.applyDynamicHotSearch(isHideHotSearch);
 
-    this.currentNightModeConfig = nm;
+    this.currentDarkModeConfig = nm;
 
     let isDarkTime = false;
     if (nm.enabled) {
@@ -94,7 +97,7 @@ class UIEngine {
         : this.isTimeInRange(nm.start, nm.end);
     }
 
-    this.applyNightMode(isDarkTime);
+    this.applyDarkMode(isDarkTime);
   }
 
   applyDynamicHotSearch(enabled) {
@@ -228,9 +231,9 @@ class UIEngine {
     }
   }
 
-  applyNightMode(isDark) {
+  applyDarkMode(isDark) {
     const root = document.documentElement;
-    localStorage.setItem("newb_night_mode_active", isDark);
+    localStorage.setItem("newb_dark_mode_active", isDark);
 
     if (this.themeObserver) {
       this.themeObserver.disconnect();
@@ -238,10 +241,10 @@ class UIEngine {
     }
 
     if (isDark) {
-      root.classList.add(this.nightModeClass);
+      root.classList.add(this.darkModeClass);
       this.lockThemeAttribute("dark");
     } else {
-      root.classList.remove(this.nightModeClass);
+      root.classList.remove(this.darkModeClass);
       this.lockThemeAttribute("light");
     }
   }

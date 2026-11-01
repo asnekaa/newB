@@ -12,7 +12,7 @@ class ConfigManager {
         hideAds: true,
       },
       ui: {
-        nightMode: {
+        darkMode: {
           enabled: true,
           followSystem: true,
           start: "18:30",
@@ -69,6 +69,16 @@ class ConfigManager {
 
     if (!config || typeof config !== "object" || Array.isArray(config)) {
       return defaults;
+    }
+
+    config = { ...config };
+    if (config.ui && typeof config.ui === "object") {
+      const ui = { ...config.ui };
+      if (ui.nightMode !== undefined && ui.darkMode === undefined) {
+        ui.darkMode = ui.nightMode;
+      }
+      delete ui.nightMode;
+      config.ui = ui;
     }
 
     const merged = this.mergeConfig(defaults, config);
