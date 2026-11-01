@@ -39,6 +39,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("app-version").textContent = `v${chrome.runtime.getManifest().version}`;
 
+    const versionEl = document.getElementById("app-version");
+    const versionHint = document.getElementById("version-hint");
+    let versionHintTimer = null;
+    if (versionEl && versionHint) {
+      versionEl.addEventListener("click", () => {
+        versionHint.classList.add("show");
+        clearTimeout(versionHintTimer);
+        versionHintTimer = setTimeout(() => {
+          versionHint.classList.remove("show");
+        }, 2600);
+      });
+    }
+
     const nm = ui.darkMode || {
       enabled: true,
       followSystem: true,
