@@ -67,7 +67,7 @@ const groups = { feat: [], fix: [], other: [] };
 for (const subject of subjects) {
   const match = subject.match(/^([a-z]+)(\(.+\))?(!)?:\s*(.+)$/);
   if (!match) {
-    groups.other.push(subject);
+    groups.other.push(`- ${subject}`);
     continue;
   }
   const [, type, scope, mark, text] = match;
