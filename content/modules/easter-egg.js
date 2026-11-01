@@ -12,21 +12,6 @@
     "a",
   ];
 
-  const FALLBACK = [
-    "前方高能",
-    "233333",
-    "awsl",
-    "爷青回",
-    "好活",
-    "蚌埠住了",
-    "DNA 动了",
-    "典",
-    "泪目",
-    "一键三连",
-    "太草了",
-    "高能预警",
-  ];
-
   const COLORS = ["#ffffff", "#fb7299", "#00aeec", "#ffd166", "#8bd29b", "#a78bfa"];
 
   let index = 0;
@@ -66,29 +51,29 @@
       const list = [...doc.querySelectorAll("d")]
         .map((node) => node.textContent.trim())
         .filter((item) => item && item.length >= 2 && item.length <= 18);
-      return shuffle([...new Set(list)]).slice(0, 60);
+      return shuffle([...new Set(list)]).slice(0, 40);
     } catch {
       return [];
     }
   };
 
   const rain = async (phrases) => {
-    if (running || !document.body) return;
+    if (running || !document.body || !phrases.length) return;
     running = true;
 
     const layer = document.createElement("div");
     layer.id = "newb-danmaku-rain";
 
     const items = [];
-    for (let i = 0; i < 60; i += 1) {
+    for (const text of phrases) {
       const item = document.createElement("span");
       item.className = "newb-danmaku-item";
-      item.textContent = phrases[i % phrases.length];
+      item.textContent = text;
       item.style.top = `${Math.random() * 96}%`;
-      item.style.fontSize = `${14 + Math.random() * 22}px`;
+      item.style.fontSize = `${14 + Math.random() * 20}px`;
       item.style.color = pick(COLORS);
-      item.style.animationDuration = `${3.2 + Math.random() * 4.5}s`;
-      item.style.animationDelay = `${Math.random() * 1.8}s`;
+      item.style.animationDuration = `${6 + Math.random() * 4.5}s`;
+      item.style.animationDelay = `${Math.random() * 2.2}s`;
       item.style.opacity = String(0.75 + Math.random() * 0.25);
       layer.appendChild(item);
       items.push(item);
@@ -135,7 +120,11 @@
       if (!isVideoPage()) return;
 
       const phrases = await extractDanmaku();
-      rain(phrases.length >= 12 ? phrases : FALLBACK);
+      if (phrases.length === 0) {
+        console.log("newB: 这个视频没有可用弹幕，彩蛋不触发");
+        return;
+      }
+      rain(phrases);
     },
     true,
   );
