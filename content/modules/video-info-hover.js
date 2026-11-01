@@ -329,10 +329,18 @@ class VideoInfoHoverEngine {
     let replyHtml = "";
     if (this.config.replyEnabled) {
       const replies = reply?.replies;
-      if (replies && replies.length > 0) {
+      if ((replies && replies.length > 0) || reply?.top) {
+        const top = reply?.top;
+        const pinned =
+          (top && !Array.isArray(top) && (top.upper || top.admin)) ||
+          (Array.isArray(top) && top[0]) ||
+          (Array.isArray(reply?.top_replies) && reply.top_replies[0]) ||
+          null;
         let hotComment =
-          replies.find((r) => r.attr === 32768) ||
-          replies.reduce((l, r) => (l.like > r.like ? l : r));
+          pinned ||
+          (replies && replies.length > 0
+            ? replies.reduce((l, r) => ((l.like || 0) > (r.like || 0) ? l : r))
+            : null);
         if (hotComment) {
           const member = hotComment.member;
           const content = hotComment.content;
