@@ -356,6 +356,10 @@ class VideoInfoHoverEngine {
 
           replyHtml = `
                         <div class="newb-hover-reply">
+                            <div class="newb-reply-header">
+                                <span class="newb-pill${pinned ? " is-pinned" : ""}">${pinned ? "置顶" : "热评"}</span>
+                                ${hotComment.like ? `<span class="newb-reply-like">${formatNum(hotComment.like)} 赞</span>` : ""}
+                            </div>
                             <div class="newb-reply-content">
                                 <span class="newb-reply-user">${member.uname}:</span>
                                 <span class="newb-reply-text">${message}</span>
@@ -367,26 +371,49 @@ class VideoInfoHoverEngine {
       }
     }
 
+    const cover = String(view.pic || "")
+      .replace(/^\/\//, "https://")
+      .replace(/^http:\/\//i, "https://");
+    const coverHtml = cover
+      ? `<img class="newb-cover" src="${cover}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+      : "";
+    const durationHtml = view.duration
+      ? `<span class="newb-hover-dur">${this.formatSeconds(view.duration)}</span>`
+      : "";
+
     const card = this.getCard();
     card.innerHTML = `
             <div class="newb-hover-content">
-                <div class="newb-hover-title">${view.title}</div>
-                <div class="newb-hover-meta">
-                    <span class="newb-hover-up">UP: ${upName}</span>
-                    <span class="newb-hover-time">${timeStr}</span>
+                <div class="newb-hover-head">
+                    ${coverHtml}
+                    <div class="newb-head-main">
+                        <div class="newb-hover-title">${view.title}</div>
+                        <div class="newb-hover-meta">
+                            <span class="newb-hover-up">${upName}</span>
+                            <span class="newb-hover-time">${timeStr}</span>
+                            ${durationHtml}
+                        </div>
+                        <div class="newb-hover-tags">
+                            <span class="newb-hover-type">#${type}</span>
+                            ${tagsHtml}
+                        </div>
+                    </div>
                 </div>
                 <div class="newb-hover-desc">${view.desc || "暂无简介"}</div>
-                <div class="newb-hover-tags">
-                    <span class="newb-hover-type">#${type}</span>
-                    ${tagsHtml}
-                </div>
                 <div class="newb-hover-stats">
-                    <div>播放 <b>${formatNum(view.stat.view)}</b></div>
-                    <div>弹幕 <b>${formatNum(view.stat.danmaku)}</b></div>
-                    <div>点赞 <b>${formatNum(view.stat.like)}</b></div>
-                    <div>硬币 <b>${formatNum(view.stat.coin)}</b></div>
-                    <div>收藏 <b>${formatNum(view.stat.favorite)}</b></div>
-                    <div>分享 <b>${formatNum(view.stat.share)}</b></div>
+                    ${[
+                      ["播放", view.stat.view],
+                      ["弹幕", view.stat.danmaku],
+                      ["点赞", view.stat.like],
+                      ["硬币", view.stat.coin],
+                      ["收藏", view.stat.favorite],
+                      ["分享", view.stat.share],
+                    ]
+                      .map(
+                        ([label, value]) =>
+                          `<div class="newb-stat"><b>${formatNum(value)}</b><span>${label}</span></div>`,
+                      )
+                      .join("")}
                 </div>
                 ${aiHtml}
                 ${replyHtml}
@@ -412,6 +439,20 @@ class VideoInfoHoverEngine {
           window.open(pic.src, "_blank", "noopener"),
         );
       });
+
+      const coverEl = card.querySelector(".newb-cover");
+      if (coverEl) {
+        coverEl.addEventListener("error", () => coverEl.remove());
+        coverEl.addEventListener("click", () => {
+          if (this.currentBvid) {
+            window.open(
+              `https://www.bilibili.com/video/${this.currentBvid}`,
+              "_blank",
+              "noopener",
+            );
+          }
+        });
+      }
     });
   }
 
@@ -459,14 +500,19 @@ class VideoInfoHoverEngine {
       ? `<div class="newb-skeleton newb-skel-ai"></div>`
       : "";
     card.innerHTML = `
-            <div class="newb-skeleton newb-skel-title ${isTwoLines ? "is-two-lines" : ""}"></div>
+            <div class="newb-skel-head">
+                <div class="newb-skeleton newb-skel-cover"></div>
+                <div class="newb-skel-head-main">
+                    <div class="newb-skeleton newb-skel-title ${isTwoLines ? "is-two-lines" : ""}"></div>
+                    <div class="newb-skeleton newb-skel-desc short"></div>
+                    <div class="newb-skel-tags">
+                        <div class="newb-skeleton newb-skel-tag"></div>
+                        <div class="newb-skeleton newb-skel-tag"></div>
+                    </div>
+                </div>
+            </div>
             <div class="newb-skeleton newb-skel-desc"></div>
             <div class="newb-skeleton newb-skel-desc short"></div>
-            <div class="newb-skel-tags">
-                <div class="newb-skeleton newb-skel-tag"></div>
-                <div class="newb-skeleton newb-skel-tag"></div>
-                <div class="newb-skeleton newb-skel-tag"></div>
-            </div>
             <div class="newb-skeleton newb-skel-stats"></div>
             ${skeletonAiHtml}
         `;
