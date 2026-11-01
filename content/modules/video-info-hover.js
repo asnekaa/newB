@@ -400,18 +400,38 @@ class VideoInfoHoverEngine {
 
       card.querySelectorAll(".newb-reply-pic").forEach((pic) => {
         pic.addEventListener("error", () => pic.remove());
-        pic.addEventListener("click", () =>
-          window.open(pic.src, "_blank", "noopener"),
-        );
+        pic.addEventListener("click", () => this.openPicture(pic.src));
       });
     });
+  }
+
+  openPicture(src) {
+    if (!src) return;
+    const viewer = document.createElement("div");
+    viewer.className = "newb-pic-viewer";
+    const img = document.createElement("img");
+    img.className = "newb-pic-viewer-img";
+    img.src = src;
+    img.alt = "";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("click", (event) => event.stopPropagation());
+    viewer.appendChild(img);
+    const close = () => {
+      viewer.remove();
+      document.removeEventListener("keydown", onKey);
+    };
+    const onKey = (event) => {
+      if (event.key === "Escape") close();
+    };
+    viewer.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    document.body.appendChild(viewer);
   }
 
   positionCard(targetRect) {
     const card = this.getCard();
     const cardRect = card.getBoundingClientRect();
-    const { innerWidth: vw, innerHeight: vh } = window;
-    const margin = 15;
+    const { innerWidth: vw, innerHeight: vh } = window;    const margin = 15;
 
     let left = targetRect.right + margin;
     let top = targetRect.top;
