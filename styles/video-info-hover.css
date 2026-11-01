@@ -65,10 +65,9 @@
 
   .newb-skel-cover {
     width: 112px;
-    min-height: 63px;
+    height: 63px;
     border-radius: 8px;
     flex-shrink: 0;
-    align-self: stretch;
   }
 
   .newb-skel-head-main {
@@ -100,6 +99,7 @@
   .newb-skel-tags {
     display: flex;
     gap: 6px;
+    margin-bottom: 8px;
   }
 
   .newb-skel-tag {
@@ -127,10 +127,8 @@
 
   .newb-cover {
     width: 112px;
-    min-height: 63px;
-    max-height: 132px;
+    height: 63px;
     flex-shrink: 0;
-    align-self: stretch;
     object-fit: cover;
     border-radius: 8px;
     background: #f1f2f3;
@@ -148,8 +146,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
   }
 
   .newb-hover-title {
@@ -237,6 +235,7 @@
     flex-wrap: wrap;
     gap: 5px;
     align-items: center;
+    margin-bottom: 8px;
   }
 
   .newb-hover-type {

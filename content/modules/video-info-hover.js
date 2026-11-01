@@ -392,11 +392,11 @@ class VideoInfoHoverEngine {
                             <span class="newb-hover-time">${timeStr}</span>
                             ${durationHtml}
                         </div>
-                        <div class="newb-hover-tags">
-                            <span class="newb-hover-type">#${type}</span>
-                            ${tagsHtml}
-                        </div>
                     </div>
+                </div>
+                <div class="newb-hover-tags">
+                    <span class="newb-hover-type">#${type}</span>
+                    ${tagsHtml}
                 </div>
                 <div class="newb-hover-desc">${view.desc || "暂无简介"}</div>
                 <div class="newb-hover-stats">
@@ -504,11 +504,12 @@ class VideoInfoHoverEngine {
                 <div class="newb-skel-head-main">
                     <div class="newb-skeleton newb-skel-title ${isTwoLines ? "is-two-lines" : ""}"></div>
                     <div class="newb-skeleton newb-skel-desc short"></div>
-                    <div class="newb-skel-tags">
-                        <div class="newb-skeleton newb-skel-tag"></div>
-                        <div class="newb-skeleton newb-skel-tag"></div>
-                    </div>
                 </div>
+            </div>
+            <div class="newb-skel-tags">
+                <div class="newb-skeleton newb-skel-tag"></div>
+                <div class="newb-skeleton newb-skel-tag"></div>
+                <div class="newb-skeleton newb-skel-tag"></div>
             </div>
             <div class="newb-skeleton newb-skel-desc"></div>
             <div class="newb-skeleton newb-skel-desc short"></div>
