@@ -135,7 +135,11 @@
   .bili-video-card__info--tit:hover,
   .video-list-item .title:hover,
   .bili-video-card__info a:hover,
-  .bili-video-card__info a:hover * {
+  .bili-video-card__info a:hover *,
+  .bili-video-card__info--bottom:hover,
+  .bili-video-card__info--bottom:hover *,
+  .bili-video-card__info--author:hover,
+  .bili-video-card__info--author:hover * {
     color: #00aeec !important;
     fill: #00aeec !important;
   }
