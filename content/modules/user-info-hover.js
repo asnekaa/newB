@@ -290,22 +290,69 @@ class UserInfoHoverEngine {
     this.currentMid = null;
   }
 
+  resolveMid(el) {
+    if (!el || typeof el.closest !== "function") return null;
+
+    const node = el.closest("a, [data-user-id], [data-uid]");
+
+    if (node) {
+      if (node.dataset?.userId) return String(node.dataset.userId);
+      if (node.dataset?.uid) return String(node.dataset.uid);
+
+      const href = String(node.getAttribute?.("href") || node.href || "");
+      const match = href.match(/space\.bilibili\.com\/(\d+)/);
+      if (match) return match[1];
+    }
+
+    const dyn = el.closest(
+      ".bili-dyn-item, .bili-dyn-card-video, .bili-dyn-title",
+    );
+    const link = dyn?.querySelector?.('a[href*="space.bilibili.com"]');
+    const dynHref = String(link?.getAttribute?.("href") || link?.href || "");
+    const dynMatch = dynHref.match(/space\.bilibili\.com\/(\d+)/);
+    if (dynMatch) return dynMatch[1];
+
+    return null;
+  }
+
+  hoverTarget(event) {
+    return (
+      event.target?.closest?.(
+        "a, [data-user-id], [data-uid], .bili-dyn-title__text",
+      ) || null
+    );
+  }
+
+  keepForSameMid(target, event, mid) {
+    const related = event.relatedTarget;
+
+    if (related && this.card?.contains(related)) return true;
+    if (related && this.resolveMid(related) === mid) return true;
+
+    const rect = target?.getBoundingClientRect?.();
+    if (
+      rect &&
+      event.clientX >= rect.left &&
+      event.clientX <= rect.right &&
+      event.clientY >= rect.top &&
+      event.clientY <= rect.bottom
+    ) {
+      return true;
+    }
+
+    const under = document.elementFromPoint?.(event.clientX, event.clientY);
+    return Boolean(under && this.resolveMid(under) === mid);
+  }
+
   bindEvents() {
     document.addEventListener("mouseover", (e) => {
       if (!this.config.enabled) return;
 
-      const target = e.target.closest("a, [data-user-id],[data-uid]");
+      const target = this.hoverTarget(e);
       if (!target || (e.relatedTarget && target.contains(e.relatedTarget)))
         return;
 
-      let mid = null;
-      if (target.dataset.userId) mid = target.dataset.userId;
-      else if (target.dataset.uid) mid = target.dataset.uid;
-      else if (target.href) {
-        const match = target.href.match(/space\.bilibili\.com\/(\d+)/);
-        if (match) mid = match[1];
-      }
-
+      const mid = this.resolveMid(target);
       if (!mid) return;
 
       clearTimeout(this.hideTimer);
@@ -322,22 +369,24 @@ class UserInfoHoverEngine {
     document.addEventListener("mouseout", (e) => {
       if (!this.config.enabled) return;
 
-      const target = e.target.closest("a, [data-user-id],[data-uid]");
+      const target = this.hoverTarget(e);
       if (!target || (e.relatedTarget && target.contains(e.relatedTarget)))
         return;
 
-      let mid = null;
-      if (target.dataset.userId) mid = target.dataset.userId;
-      else if (target.dataset.uid) mid = target.dataset.uid;
-      else if (target.href) {
-        const match = target.href.match(/space\.bilibili\.com\/(\d+)/);
-        if (match) mid = match[1];
-      }
-
+      const mid = this.resolveMid(target);
       if (!mid) return;
 
+      if (this.keepForSameMid(target, e, mid)) return;
+
       clearTimeout(this.showTimer);
-      this.hideTimer = setTimeout(() => this.hideCard(), 200);
+      this.hideTimer = setTimeout(() => {
+        if (this.card?.matches?.(":hover")) return;
+
+        const under = document.elementFromPoint?.(e.clientX, e.clientY);
+        if (under && this.resolveMid(under) === mid) return;
+
+        this.hideCard();
+      }, 200);
     });
   }
 }
