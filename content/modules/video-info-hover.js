@@ -181,6 +181,15 @@ class VideoInfoHoverEngine {
         this.hideTimer = setTimeout(() => this.hideCard(), 200);
       });
 
+      if (typeof ResizeObserver !== "undefined") {
+        this.cardObserver = new ResizeObserver(() => {
+          if (this.lastRect && this.card.classList.contains("show")) {
+            this.positionCard(this.lastRect);
+          }
+        });
+        this.cardObserver.observe(this.card);
+      }
+
       this.card.addEventListener("click", (e) => {
         const btn = e.target.closest(".newb-expand-btn");
         if (btn) {
@@ -424,7 +433,7 @@ class VideoInfoHoverEngine {
     return `
                         <div class="newb-reply-item">
                             <div class="newb-reply-header">
-                                ${pinned ? `<span class="newb-pill is-pinned">置顶</span>` : up ? "" : `<span class="newb-pill">热评</span>`}${up ? `<span class="newb-pill is-up">UP</span>` : ""}
+                                ${pinned ? `<span class="newb-pill is-pinned">置顶</span>` : `<span class="newb-pill">热评</span>`}${up ? `<span class="newb-pill is-up">UP</span>` : ""}
                                 ${comment.like ? `<span class="newb-reply-like">${formatNum(comment.like)} 赞</span>` : ""}
                             </div>
                             <div class="newb-reply-content">
@@ -595,6 +604,15 @@ class VideoInfoHoverEngine {
   }
 
   positionCard(targetRect) {
+    this.lastRect = {
+      left: targetRect.left,
+      right: targetRect.right,
+      top: targetRect.top,
+      bottom: targetRect.bottom,
+      width: targetRect.width,
+      height: targetRect.height,
+    };
+
     const card = this.getCard();
     const cardRect = card.getBoundingClientRect();
     const { innerWidth: vw, innerHeight: vh } = window;
@@ -619,11 +637,13 @@ class VideoInfoHoverEngine {
       top = targetRect.bottom + margin;
     }
 
-    if (top + cardRect.height > vh) {
-      top = vh - cardRect.height - margin;
+    const maxTop = vh - cardRect.height - margin;
+
+    if (top > maxTop) {
+      top = maxTop;
     }
 
-    if (top < 0) top = margin;
+    if (top < margin) top = margin;
 
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
