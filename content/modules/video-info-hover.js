@@ -373,12 +373,10 @@ class VideoInfoHoverEngine {
                 `;
   }
 
-  buildReplyItemHtml(comment, { pinned = false, up = false, formatNum }) {
-    const member = comment.member || { uname: "匿名用户" };
-    const content = comment.content;
-    let message = content.message || "";
+  formatCommentMessage(content) {
+    let message = content?.message || "";
 
-    if (content.emote) {
+    if (content?.emote) {
       for (const [key, emote] of Object.entries(content.emote)) {
         message = message.replaceAll(
           key,
@@ -386,6 +384,14 @@ class VideoInfoHoverEngine {
         );
       }
     }
+
+    return message;
+  }
+
+  buildReplyItemHtml(comment, { pinned = false, up = false, formatNum }) {
+    const member = comment.member || { uname: "匿名用户" };
+    const content = comment.content;
+    const message = this.formatCommentMessage(content);
 
     const pictures = (Array.isArray(content.pictures) ? content.pictures : [])
       .map((pic) =>
@@ -404,6 +410,18 @@ class VideoInfoHoverEngine {
           .join("")}</div>`
       : "";
 
+    const subs = (Array.isArray(comment.replies) ? comment.replies : []).filter(
+      (item) => item && item.content,
+    );
+    const hotSub = subs.sort((a, b) => (b.like || 0) - (a.like || 0))[0];
+    const subHtml = hotSub
+      ? `<div class="newb-reply-sub">
+                                    <span class="newb-reply-sub-user">${hotSub.member?.uname || "匿名用户"}:</span>
+                                    <span class="newb-reply-sub-text">${this.formatCommentMessage(hotSub.content)}</span>
+                                    ${hotSub.like ? `<span class="newb-reply-sub-like">${formatNum(hotSub.like)} 赞</span>` : ""}
+                                </div>`
+      : "";
+
     return `
                         <div class="newb-reply-item">
                             <div class="newb-reply-header">
@@ -415,6 +433,7 @@ class VideoInfoHoverEngine {
                                 <span class="newb-reply-text">${message}</span>
                             </div>
                             ${picsHtml}
+                            ${subHtml}
                         </div>`;
   }
 

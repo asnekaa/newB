@@ -467,6 +467,30 @@
     margin-right: 4px;
   }
 
+  .newb-reply-sub {
+    margin-top: 7px;
+    padding-left: 8px;
+    border-left: 2px solid rgba(0, 174, 236, 0.25);
+    color: #9499a0;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+
+  .newb-reply-sub-user {
+    color: #00aeec;
+  }
+
+  .newb-reply-sub-text {
+    color: #61666d;
+  }
+
+  .newb-reply-sub-like {
+    margin-left: 6px;
+    font-size: 10.5px;
+    color: #9499a0;
+    font-variant-numeric: tabular-nums;
+  }
+
   .newb-reply-pics {
     display: flex;
     flex-wrap: wrap;
@@ -656,6 +680,23 @@
 
   .newb-reply-user {
     color: #fb7299;
+  }
+
+  .newb-reply-sub {
+    border-left-color: rgba(76, 199, 240, 0.3);
+    color: #8b96a5;
+  }
+
+  .newb-reply-sub-user {
+    color: #4cc7f0;
+  }
+
+  .newb-reply-sub-text {
+    color: #a0abb8;
+  }
+
+  .newb-reply-sub-like {
+    color: #8b96a5;
   }
 
   .newb-skeleton {
