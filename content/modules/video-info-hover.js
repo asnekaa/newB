@@ -399,8 +399,7 @@ class VideoInfoHoverEngine {
           .replace(/^\/\//, "https://")
           .replace(/^http:\/\//i, "https://"),
       )
-      .filter(Boolean)
-      .slice(0, 3);
+      .filter(Boolean);
     const picsHtml = pictures.length
       ? `<div class="newb-reply-pics">${pictures
           .map(
