@@ -318,6 +318,17 @@
     color: #61666d;
   }
 
+  .newb-reply-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .newb-reply-item + .newb-reply-item {
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+  }
+
   .newb-pill {
     display: inline-flex;
     align-items: center;
@@ -590,6 +601,10 @@
     background: #232e3b;
     border-color: rgba(255, 255, 255, 0.06);
     color: #a0abb8;
+  }
+
+  .newb-reply-item + .newb-reply-item {
+    border-top-color: rgba(255, 255, 255, 0.1);
   }
 
   .newb-pill {

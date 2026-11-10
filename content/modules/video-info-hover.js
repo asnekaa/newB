@@ -373,32 +373,9 @@ class VideoInfoHoverEngine {
                 `;
   }
 
-  buildReplyHtml(reply, { pending = false } = {}) {
-    if (!this.config.replyEnabled) return "";
-    if (pending && !reply) {
-      return `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
-    }
-
-    const replies = reply?.replies;
-    if (!(replies && replies.length > 0) && !reply?.top) return "";
-
-    const top = reply?.top;
-    const pinned =
-      (top && !Array.isArray(top) && (top.upper || top.admin)) ||
-      (Array.isArray(top) && top[0]) ||
-      (Array.isArray(reply?.top_replies) && reply.top_replies[0]) ||
-      null;
-    const hotComment =
-      pinned ||
-      (replies && replies.length > 0
-        ? replies.reduce((l, r) => ((l.like || 0) > (r.like || 0) ? l : r))
-        : null);
-
-    if (!hotComment || !hotComment.content) return "";
-
-    const { formatNum } = window.newbUtils;
-    const member = hotComment.member || { uname: "匿名用户" };
-    const content = hotComment.content;
+  buildReplyItemHtml(comment, pinned, formatNum) {
+    const member = comment.member || { uname: "匿名用户" };
+    const content = comment.content;
     let message = content.message || "";
 
     if (content.emote) {
@@ -428,18 +405,61 @@ class VideoInfoHoverEngine {
       : "";
 
     return `
-                        <div class="newb-hover-reply">
+                        <div class="newb-reply-item">
                             <div class="newb-reply-header">
                                 <span class="newb-pill${pinned ? " is-pinned" : ""}">${pinned ? "置顶" : "热评"}</span>
-                                ${hotComment.like ? `<span class="newb-reply-like">${formatNum(hotComment.like)} 赞</span>` : ""}
+                                ${comment.like ? `<span class="newb-reply-like">${formatNum(comment.like)} 赞</span>` : ""}
                             </div>
                             <div class="newb-reply-content">
                                 <span class="newb-reply-user">${member.uname}:</span>
                                 <span class="newb-reply-text">${message}</span>
                             </div>
                             ${picsHtml}
-                        </div>
-                    `;
+                        </div>`;
+  }
+
+  buildReplyHtml(reply, { pending = false } = {}) {
+    if (!this.config.replyEnabled) return "";
+    if (pending && !reply) {
+      return `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
+    }
+
+    const replies = (Array.isArray(reply?.replies) ? reply.replies : []).filter(
+      (item) => item && item.content,
+    );
+    const top = reply?.top;
+    const pinned =
+      (top && !Array.isArray(top) && (top.upper || top.admin)) ||
+      (Array.isArray(top) && top[0]) ||
+      (Array.isArray(reply?.top_replies) && reply.top_replies[0]) ||
+      null;
+    const pinnedValid = pinned && pinned.content ? pinned : null;
+
+    const hot = replies
+      .filter(
+        (item) =>
+          !pinnedValid ||
+          (item.rpid || item.rpid_str) !== (pinnedValid.rpid || pinnedValid.rpid_str),
+      )
+      .sort((a, b) => (b.like || 0) - (a.like || 0));
+
+    const picked = pinnedValid ? [pinnedValid, hot[0]] : hot.slice(0, 2);
+    const comments = picked.filter(Boolean);
+
+    if (comments.length === 0) return "";
+
+    const { formatNum } = window.newbUtils;
+    const items = comments
+      .map((comment, index) =>
+        this.buildReplyItemHtml(
+          comment,
+          Boolean(pinnedValid) && index === 0,
+          formatNum,
+        ),
+      )
+      .join("");
+
+    return `<div class="newb-hover-reply newb-reply-list">${items}</div>`;
   }
 
   renderCard(data, { pending = false } = {}) {
