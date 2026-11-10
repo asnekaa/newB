@@ -585,16 +585,32 @@ class VideoInfoHoverEngine {
     });
   }
 
+  isDynamicPage() {
+    return (
+      location.hostname === "t.bilibili.com" ||
+      location.pathname.startsWith("/v/dynamic") ||
+      location.pathname.startsWith("/dynamic") ||
+      location.pathname.startsWith("/opus/")
+    );
+  }
+
   positionCard(targetRect) {
     const card = this.getCard();
     const cardRect = card.getBoundingClientRect();
     const { innerWidth: vw, innerHeight: vh } = window;
     const margin = 15;
+    const preferLeft = this.isDynamicPage();
 
-    let left = targetRect.right + margin;
+    let left = preferLeft
+      ? targetRect.left - cardRect.width - margin
+      : targetRect.right + margin;
     let top = targetRect.top;
 
-    if (left + cardRect.width > vw) {
+    if (preferLeft) {
+      if (left < margin) {
+        left = targetRect.right + margin;
+      }
+    } else if (left + cardRect.width > vw) {
       left = targetRect.left - cardRect.width - margin;
     }
 
