@@ -407,7 +407,7 @@ class VideoInfoHoverEngine {
     return `
                         <div class="newb-reply-item">
                             <div class="newb-reply-header">
-                                ${pinned ? `<span class="newb-pill is-pinned">置顶</span>` : ""}${up ? `<span class="newb-pill is-up">UP</span>` : ""}
+                                ${pinned ? `<span class="newb-pill is-pinned">置顶</span>` : up ? "" : `<span class="newb-pill">热评</span>`}${up ? `<span class="newb-pill is-up">UP</span>` : ""}
                                 ${comment.like ? `<span class="newb-reply-like">${formatNum(comment.like)} 赞</span>` : ""}
                             </div>
                             <div class="newb-reply-content">
