@@ -293,6 +293,13 @@ class UserInfoHoverEngine {
   resolveMid(el) {
     if (!el || typeof el.closest !== "function") return null;
 
+    const sponsor = el.closest("[bilisponsor-userid]");
+    const sponsorMid = String(
+      sponsor?.getAttribute?.("bilisponsor-userid") || "",
+    ).trim();
+
+    if (/^\d+$/.test(sponsorMid)) return sponsorMid;
+
     const node = el.closest("a, [data-user-id], [data-uid]");
 
     if (node) {
@@ -307,11 +314,25 @@ class UserInfoHoverEngine {
     let scope = el;
 
     for (let depth = 0; depth < 6 && scope?.querySelector; depth += 1) {
-      const link = scope.querySelector('a[href*="space.bilibili.com"]');
-      const href = String(link?.getAttribute?.("href") || link?.href || "");
-      const match = href.match(/space\.bilibili\.com\/(\d+)/);
+      const candidate = scope.querySelector(
+        '[bilisponsor-userid], [data-uid], [data-user-id], a[href*="space.bilibili.com"]',
+      );
 
-      if (match) return match[1];
+      if (candidate) {
+        const attr =
+          candidate.getAttribute?.("bilisponsor-userid") ||
+          candidate.dataset?.uid ||
+          candidate.dataset?.userId ||
+          "";
+
+        if (/^\d+$/.test(String(attr).trim())) return String(attr).trim();
+
+        const href = String(
+          candidate.getAttribute?.("href") || candidate.href || "",
+        );
+        const match = href.match(/space\.bilibili\.com\/(\d+)/);
+        if (match) return match[1];
+      }
 
       scope = scope.parentElement;
     }
