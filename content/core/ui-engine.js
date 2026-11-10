@@ -59,7 +59,13 @@ class UIEngine {
     const isHideRecommend = isMasterOn && !!uiCfg.hideRecommend;
     const isRedirectHome = isMasterOn && !!uiCfg.redirectHomeToSearch;
     const isHideHomeFeed = isMasterOn && !!uiCfg.hideHomeFeed;
-    const isUserInfoHover = isMasterOn && (uiCfg.userInfoHover ?? true);
+    const isDynamicPage =
+      location.hostname === "t.bilibili.com" ||
+      location.pathname.startsWith("/v/dynamic") ||
+      location.pathname.startsWith("/dynamic") ||
+      location.pathname.startsWith("/opus/");
+    const isUserInfoHover =
+      isMasterOn && (uiCfg.userInfoHover ?? true) && !isDynamicPage;
     const isIpEnabled = isMasterOn && !!uiCfg.showIpLocation;
 
     localStorage.setItem("newb_master_switch", isMasterOn);
