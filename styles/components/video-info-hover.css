@@ -348,6 +348,12 @@
     border-color: rgba(251, 114, 153, 0.28);
   }
 
+  .newb-pill.is-up {
+    color: #fff;
+    background: #fb7299;
+    border-color: #fb7299;
+  }
+
   .newb-reply-like {
     margin-left: auto;
     color: #9499a0;
@@ -617,6 +623,12 @@
     color: #fb7299;
     background: rgba(251, 114, 153, 0.16);
     border-color: rgba(251, 114, 153, 0.32);
+  }
+
+  .newb-pill.is-up {
+    color: #1a232c;
+    background: #fb7299;
+    border-color: #fb7299;
   }
 
   .newb-reply-like {

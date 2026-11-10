@@ -373,7 +373,7 @@ class VideoInfoHoverEngine {
                 `;
   }
 
-  buildReplyItemHtml(comment, pinned, formatNum) {
+  buildReplyItemHtml(comment, { pinned = false, up = false, formatNum }) {
     const member = comment.member || { uname: "匿名用户" };
     const content = comment.content;
     let message = content.message || "";
@@ -407,7 +407,7 @@ class VideoInfoHoverEngine {
     return `
                         <div class="newb-reply-item">
                             <div class="newb-reply-header">
-                                <span class="newb-pill${pinned ? " is-pinned" : ""}">${pinned ? "置顶" : "热评"}</span>
+                                ${pinned ? `<span class="newb-pill is-pinned">置顶</span>` : ""}${up ? `<span class="newb-pill is-up">UP</span>` : ""}
                                 ${comment.like ? `<span class="newb-reply-like">${formatNum(comment.like)} 赞</span>` : ""}
                             </div>
                             <div class="newb-reply-content">
@@ -418,7 +418,7 @@ class VideoInfoHoverEngine {
                         </div>`;
   }
 
-  buildReplyHtml(reply, { pending = false } = {}) {
+  buildReplyHtml(reply, { pending = false, ownerMid = null } = {}) {
     if (!this.config.replyEnabled) return "";
     if (pending && !reply) {
       return `<div class="newb-hover-reply is-pending">热评加载中…</div>`;
@@ -451,11 +451,11 @@ class VideoInfoHoverEngine {
     const { formatNum } = window.newbUtils;
     const items = comments
       .map((comment, index) =>
-        this.buildReplyItemHtml(
-          comment,
-          Boolean(pinnedValid) && index === 0,
+        this.buildReplyItemHtml(comment, {
+          pinned: Boolean(pinnedValid) && index === 0,
+          up: Boolean(ownerMid) && String(comment.member?.mid) === String(ownerMid),
           formatNum,
-        ),
+        }),
       )
       .join("");
 
@@ -530,7 +530,7 @@ class VideoInfoHoverEngine {
                       .join("")}
                 </div>
                 <div class="newb-slot-ai">${this.buildAiHtml(conclusion, { pending })}</div>
-                <div class="newb-slot-reply">${this.buildReplyHtml(reply, { pending })}</div>
+                <div class="newb-slot-reply">${this.buildReplyHtml(reply, { pending, ownerMid: view.owner?.mid })}</div>
             </div>
         `;
 
@@ -542,7 +542,10 @@ class VideoInfoHoverEngine {
     const aiSlot = card.querySelector(".newb-slot-ai");
     const replySlot = card.querySelector(".newb-slot-reply");
     if (aiSlot) aiSlot.innerHTML = this.buildAiHtml(data.Conclusion);
-    if (replySlot) replySlot.innerHTML = this.buildReplyHtml(data.Reply);
+    if (replySlot)
+      replySlot.innerHTML = this.buildReplyHtml(data.Reply, {
+        ownerMid: data.View?.owner?.mid,
+      });
     this.afterRender();
   }
 
