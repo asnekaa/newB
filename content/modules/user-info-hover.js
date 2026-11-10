@@ -12,7 +12,10 @@ class UserInfoHoverEngine {
 
   updateConfig(config) {
     const isMasterOn = config.masterSwitch ?? true;
-    this.config.enabled = isMasterOn && (config.ui?.userInfoHover ?? true);
+    this.config.enabled =
+      isMasterOn &&
+      (config.ui?.userInfoHover ?? true) &&
+      !this.isDynamicPage();
     this.config.delay = config.ui?.infoHoverDelay ?? 500;
 
     if (!this.config.enabled) this.hideCard();
@@ -290,94 +293,31 @@ class UserInfoHoverEngine {
     this.currentMid = null;
   }
 
-  resolveMid(el) {
-    if (!el || typeof el.closest !== "function") return null;
-
-    const sponsor = el.closest("[bilisponsor-userid]");
-    const sponsorMid = String(
-      sponsor?.getAttribute?.("bilisponsor-userid") || "",
-    ).trim();
-
-    if (/^\d+$/.test(sponsorMid)) return sponsorMid;
-
-    const node = el.closest("a, [data-user-id], [data-uid]");
-
-    if (node) {
-      if (node.dataset?.userId) return String(node.dataset.userId);
-      if (node.dataset?.uid) return String(node.dataset.uid);
-
-      const href = String(node.getAttribute?.("href") || node.href || "");
-      const match = href.match(/space\.bilibili\.com\/(\d+)/);
-      if (match) return match[1];
-    }
-
-    let scope = el;
-
-    for (let depth = 0; depth < 6 && scope?.querySelector; depth += 1) {
-      const candidate = scope.querySelector(
-        '[bilisponsor-userid], [data-uid], [data-user-id], a[href*="space.bilibili.com"]',
-      );
-
-      if (candidate) {
-        const attr =
-          candidate.getAttribute?.("bilisponsor-userid") ||
-          candidate.dataset?.uid ||
-          candidate.dataset?.userId ||
-          "";
-
-        if (/^\d+$/.test(String(attr).trim())) return String(attr).trim();
-
-        const href = String(
-          candidate.getAttribute?.("href") || candidate.href || "",
-        );
-        const match = href.match(/space\.bilibili\.com\/(\d+)/);
-        if (match) return match[1];
-      }
-
-      scope = scope.parentElement;
-    }
-
-    return null;
-  }
-
-  hoverTarget(event) {
+  isDynamicPage() {
     return (
-      event.target?.closest?.(
-        "a, [data-user-id], [data-uid], .bili-dyn-title__text",
-      ) || null
+      location.hostname === "t.bilibili.com" ||
+      location.pathname.startsWith("/v/dynamic") ||
+      location.pathname.startsWith("/dynamic") ||
+      location.pathname.startsWith("/opus/")
     );
-  }
-
-  keepForSameMid(target, event, mid) {
-    const related = event.relatedTarget;
-
-    if (related && this.card?.contains(related)) return true;
-    if (related && this.resolveMid(related) === mid) return true;
-
-    const rect = target?.getBoundingClientRect?.();
-    if (
-      rect &&
-      event.clientX >= rect.left &&
-      event.clientX <= rect.right &&
-      event.clientY >= rect.top &&
-      event.clientY <= rect.bottom
-    ) {
-      return true;
-    }
-
-    const under = document.elementFromPoint?.(event.clientX, event.clientY);
-    return Boolean(under && this.resolveMid(under) === mid);
   }
 
   bindEvents() {
     document.addEventListener("mouseover", (e) => {
       if (!this.config.enabled) return;
 
-      const target = this.hoverTarget(e);
+      const target = e.target.closest("a, [data-user-id],[data-uid]");
       if (!target || (e.relatedTarget && target.contains(e.relatedTarget)))
         return;
 
-      const mid = this.resolveMid(target);
+      let mid = null;
+      if (target.dataset.userId) mid = target.dataset.userId;
+      else if (target.dataset.uid) mid = target.dataset.uid;
+      else if (target.href) {
+        const match = target.href.match(/space\.bilibili\.com\/(\d+)/);
+        if (match) mid = match[1];
+      }
+
       if (!mid) return;
 
       clearTimeout(this.hideTimer);
@@ -394,24 +334,22 @@ class UserInfoHoverEngine {
     document.addEventListener("mouseout", (e) => {
       if (!this.config.enabled) return;
 
-      const target = this.hoverTarget(e);
+      const target = e.target.closest("a, [data-user-id],[data-uid]");
       if (!target || (e.relatedTarget && target.contains(e.relatedTarget)))
         return;
 
-      const mid = this.resolveMid(target);
+      let mid = null;
+      if (target.dataset.userId) mid = target.dataset.userId;
+      else if (target.dataset.uid) mid = target.dataset.uid;
+      else if (target.href) {
+        const match = target.href.match(/space\.bilibili\.com\/(\d+)/);
+        if (match) mid = match[1];
+      }
+
       if (!mid) return;
 
-      if (this.keepForSameMid(target, e, mid)) return;
-
       clearTimeout(this.showTimer);
-      this.hideTimer = setTimeout(() => {
-        if (this.card?.matches?.(":hover")) return;
-
-        const under = document.elementFromPoint?.(e.clientX, e.clientY);
-        if (under && this.resolveMid(under) === mid) return;
-
-        this.hideCard();
-      }, 200);
+      this.hideTimer = setTimeout(() => this.hideCard(), 200);
     });
   }
 }
