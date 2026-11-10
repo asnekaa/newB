@@ -304,13 +304,17 @@ class UserInfoHoverEngine {
       if (match) return match[1];
     }
 
-    const dyn = el.closest(
-      ".bili-dyn-item, .bili-dyn-card-video, .bili-dyn-title",
-    );
-    const link = dyn?.querySelector?.('a[href*="space.bilibili.com"]');
-    const dynHref = String(link?.getAttribute?.("href") || link?.href || "");
-    const dynMatch = dynHref.match(/space\.bilibili\.com\/(\d+)/);
-    if (dynMatch) return dynMatch[1];
+    let scope = el;
+
+    for (let depth = 0; depth < 6 && scope?.querySelector; depth += 1) {
+      const link = scope.querySelector('a[href*="space.bilibili.com"]');
+      const href = String(link?.getAttribute?.("href") || link?.href || "");
+      const match = href.match(/space\.bilibili\.com\/(\d+)/);
+
+      if (match) return match[1];
+
+      scope = scope.parentElement;
+    }
 
     return null;
   }
