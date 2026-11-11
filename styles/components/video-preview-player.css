@@ -44,66 +44,25 @@
 .newb-preview-resize.nw {
   left: 0;
   top: 0;
-  cursor: default;
+  cursor: nwse-resize;
 }
 
 .newb-preview-resize.ne {
   right: 0;
   top: 0;
-  cursor: default;
+  cursor: nesw-resize;
 }
 
 .newb-preview-resize.sw {
   left: 0;
   bottom: 0;
-  cursor: default;
+  cursor: nesw-resize;
 }
 
 .newb-preview-resize.se {
   right: 0;
   bottom: 0;
-  cursor: default;
-}
-
-.newb-preview-resize::before {
-  content: "";
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  opacity: 0.35;
-  transition: opacity 0.15s ease;
-}
-
-.newb-preview-resize:hover::before {
-  opacity: 0.8;
-}
-
-.newb-preview-resize.nw::before {
-  left: 3px;
-  top: 3px;
-  border-left: 2px solid #fff;
-  border-top: 2px solid #fff;
-}
-
-.newb-preview-resize.ne::before {
-  right: 3px;
-  top: 3px;
-  border-right: 2px solid #fff;
-  border-top: 2px solid #fff;
-}
-
-.newb-preview-resize.sw::before {
-  left: 3px;
-  bottom: 3px;
-  border-left: 2px solid #fff;
-  border-bottom: 2px solid #fff;
-}
-
-.newb-preview-resize.se::before {
-  right: 3px;
-  bottom: 3px;
-  border-right: 2px solid #fff;
-  border-bottom: 2px solid #fff;
+  cursor: nwse-resize;
 }
 
 #newb-preview-player.is-dragging .newb-preview-resize {
