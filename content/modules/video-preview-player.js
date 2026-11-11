@@ -164,9 +164,12 @@ class VideoPreviewPlayer {
     panel.addEventListener("mouseenter", () => clearTimeout(this.hideTimer));
     panel.addEventListener("mouseleave", () => this.scheduleHide());
 
-    const grip = document.createElement("div");
-    grip.className = "newb-preview-resize";
-    panel.appendChild(grip);
+    for (const corner of ["nw", "ne", "sw", "se"]) {
+      const grip = document.createElement("div");
+      grip.className = `newb-preview-resize ${corner}`;
+      grip.dataset.corner = corner;
+      panel.appendChild(grip);
+    }
 
     panel.addEventListener("pointerdown", (e) => this.onPointerDown(e));
     panel.addEventListener("pointermove", (e) => this.onPointerMove(e));
@@ -197,8 +200,18 @@ class VideoPreviewPlayer {
 
     const rect = this.panel.getBoundingClientRect();
 
-    if (e.target.closest(".newb-preview-resize")) {
-      this.resizeState = { startX: e.clientX, startWidth: rect.width };
+    const grip = e.target.closest(".newb-preview-resize");
+
+    if (grip) {
+      this.resizeState = {
+        corner: grip.dataset.corner,
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: rect.width,
+        startHeight: rect.height,
+        startLeft: rect.left,
+        startTop: rect.top,
+      };
       this.panel.classList.add("is-resizing");
     } else if (e.target.closest(".newb-preview-head")) {
       this.dragState = {
@@ -239,15 +252,35 @@ class VideoPreviewPlayer {
     }
 
     if (this.resizeState) {
+      const state = this.resizeState;
       const min = 320;
       const max = Math.min(960, window.innerWidth - 24);
+      const dx = e.clientX - state.startX;
+      const dy = e.clientY - state.startY;
+      const horizontal = state.corner.includes("e") ? dx : -dx;
       const width = Math.min(
-        Math.max(min, this.resizeState.startWidth + (e.clientX - this.resizeState.startX)),
+        Math.max(min, state.startWidth + horizontal),
         Math.max(min, max),
       );
+      const height = state.startHeight + (width - state.startWidth) * (9 / 16);
+
+      let left = state.startLeft;
+      let top = state.startTop;
+
+      if (state.corner.includes("w")) {
+        left = state.startLeft + (state.startWidth - width);
+      }
+
+      if (state.corner.includes("n")) {
+        top = state.startTop + (state.startHeight - height);
+      }
 
       this.panel.style.width = `${width}px`;
+      this.panel.style.left = `${left}px`;
+      this.panel.style.top = `${top}px`;
+
       this.userWidth = width;
+      this.userPosition = { left, top };
     }
   }
 
@@ -331,9 +364,20 @@ class VideoPreviewPlayer {
     if (!this.isOpen()) {
       this.userPosition = null;
       this.userWidth = null;
-      this.panel.style.removeProperty("width");
       this.panel.style.removeProperty("left");
       this.panel.style.removeProperty("top");
+
+      const nativeWidth = Number(view.dimension?.width) || 0;
+      const maxWidth = Math.min(960, window.innerWidth - 24);
+      const desired = Math.round(
+        Math.min(
+          Math.max(360, nativeWidth ? nativeWidth * 0.75 : 480),
+          Math.max(360, maxWidth),
+        ),
+      );
+
+      this.panel.style.width = `${desired}px`;
+      this.defaultWidth = desired;
     }
 
     this.dmSettings = this.readDanmakuSettings();
