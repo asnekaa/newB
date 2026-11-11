@@ -140,7 +140,6 @@ class VideoPreviewPlayer {
     panel.innerHTML = `
       <div class="newb-preview-head">
         <span class="newb-preview-title"></span>
-        <button class="newb-preview-pip" type="button" aria-label="画中画" title="画中画">⧉</button>
         <button class="newb-preview-close" type="button" aria-label="关闭">×</button>
       </div>
       <div class="newb-preview-stage">
@@ -158,23 +157,9 @@ class VideoPreviewPlayer {
     this.titleEl = panel.querySelector(".newb-preview-title");
     this.tipEl = panel.querySelector(".newb-preview-tip");
 
-    this.pipBtn = panel.querySelector(".newb-preview-pip");
-
     panel
       .querySelector(".newb-preview-close")
       .addEventListener("click", () => this.close());
-
-    this.pipBtn?.addEventListener("click", () => this.togglePip());
-
-    this.video.addEventListener("enterpictureinpicture", () => {
-      this.panel.classList.add("is-pip");
-    });
-
-    this.video.addEventListener("leavepictureinpicture", () => {
-      this.panel.classList.remove("is-pip");
-
-      if (!this.isOpen()) this.close();
-    });
 
     panel.addEventListener("mouseenter", () => clearTimeout(this.hideTimer));
     panel.addEventListener("mouseleave", () => this.scheduleHide());
@@ -207,24 +192,6 @@ class VideoPreviewPlayer {
         this.tipEl.classList.remove("show");
       }
     });
-  }
-
-  async togglePip() {
-    if (!this.video) return;
-
-    try {
-      if (document.pictureInPictureElement === this.video) {
-        await document.exitPictureInPicture();
-      } else {
-        if (document.pictureInPictureEnabled === false) {
-          throw new Error("PiP disabled");
-        }
-        await this.video.requestPictureInPicture();
-      }
-    } catch {
-      this.tipEl.textContent = "这个视频不支持画中画";
-      this.tipEl.classList.add("show");
-    }
   }
 
   onPointerDown(e) {
@@ -505,31 +472,39 @@ class VideoPreviewPlayer {
       return;
     }
 
-    try {
-      const res = await fetch(
-        `https://api.bilibili.com/x/v1/dm/list.so?oid=${cid}`,
-      );
-      const xml = await res.text();
-      const doc = new DOMParser().parseFromString(xml, "text/xml");
-      const list = [...doc.querySelectorAll("d")]
-        .map((node) => {
-          const parts = String(node.getAttribute("p") || "").split(",");
-          return {
-            time: Number(parts[0]) || 0,
-            color: Number(parts[3]) || 0xffffff,
-            text: node.textContent.trim(),
-          };
-        })
-        .filter((item) => item.text)
-        .sort((a, b) => a.time - b.time);
+    const urls = [
+      `https://api.bilibili.com/x/v1/dm/list.so?oid=${cid}&type=1`,
+      `https://comment.bilibili.com/${cid}.xml`,
+    ];
 
-      this.dmCache.set(cid, list);
-      if (this.dmCid !== cid) return;
-      this.dmList = list;
-      this.dmIndex = 0;
-    } catch {
-      this.dmList = [];
+    for (const url of urls) {
+      try {
+        const res = await fetch(url, { credentials: "include" });
+        const xml = await res.text();
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const list = [...doc.querySelectorAll("d")]
+          .map((node) => {
+            const parts = String(node.getAttribute("p") || "").split(",");
+            return {
+              time: Number(parts[0]) || 0,
+              color: Number(parts[3]) || 0xffffff,
+              text: node.textContent.trim(),
+            };
+          })
+          .filter((item) => item.text)
+          .sort((a, b) => a.time - b.time);
+
+        if (!list.length) continue;
+
+        this.dmCache.set(cid, list);
+        if (this.dmCid !== cid) return;
+        this.dmList = list;
+        this.dmIndex = 0;
+        return;
+      } catch {}
     }
+
+    this.dmList = [];
   }
 
   startDanmakuLoop() {
@@ -612,12 +587,7 @@ class VideoPreviewPlayer {
     if (!this.panel) return;
 
     this.panel.classList.remove("show");
-
-    if (document.pictureInPictureElement !== this.video) {
-      this.video?.pause();
-    } else {
-      return;
-    }
+    this.video?.pause();
 
     if (this.video) {
       this.video.removeAttribute("src");
