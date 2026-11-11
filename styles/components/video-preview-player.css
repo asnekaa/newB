@@ -81,7 +81,7 @@
 
 .newb-preview-dm {
   position: absolute;
-  left: 100%;
+  left: 0;
   white-space: nowrap;
   font-size: 16px;
   font-weight: 600;
@@ -97,11 +97,11 @@
 
 @keyframes newb-preview-dm-move {
   from {
-    transform: translateX(0);
+    transform: translateX(100vw);
   }
 
   to {
-    transform: translateX(calc(-100vw - 100%));
+    transform: translateX(-100%);
   }
 }
 
