@@ -14,6 +14,75 @@ class VideoPreviewPlayer {
     this.currentBvid = null;
     this.currentAnchor = null;
     this.config = { enabled: true };
+    this.dmSettings = this.readDanmakuSettings();
+  }
+
+  readDanmakuSettings() {
+    const settings = {
+      enabled: true,
+      opacity: 0.9,
+      fontScale: 1,
+      speed: 1,
+      area: 100,
+      blockColor: false,
+      blockScroll: false,
+    };
+
+    const flat = new Map();
+
+    const walk = (value, depth) => {
+      if (!value || typeof value !== "object" || depth > 4) return;
+
+      for (const [key, item] of Object.entries(value)) {
+        if (item && typeof item === "object") walk(item, depth + 1);
+        else flat.set(key, item);
+      }
+    };
+
+    try {
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const key = localStorage.key(i);
+        if (!/player|danmaku|dm|profile/i.test(key)) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw || !raw.trim().startsWith("{")) continue;
+
+        walk(JSON.parse(raw), 0);
+      }
+    } catch {}
+
+    const pick = (...names) => {
+      for (const name of names) {
+        if (flat.has(name)) {
+          const value = flat.get(name);
+          if (value !== null && value !== undefined) return value;
+        }
+      }
+      return undefined;
+    };
+
+    const enabled = pick("dm_switch", "dmSwitch", "danmakuSwitch", "danmakuEnabled");
+    if (typeof enabled === "boolean") settings.enabled = enabled;
+
+    const opacity = Number(pick("opacity", "dmOpacity", "danmakuOpacity"));
+    if (Number.isFinite(opacity) && opacity > 0 && opacity <= 1) settings.opacity = opacity;
+
+    const fontsize = Number(pick("fontsize", "fontSize", "dmFontSize", "danmakuFontSize"));
+    if (Number.isFinite(fontsize) && fontsize >= 0.4 && fontsize <= 2) settings.fontScale = fontsize;
+
+    const speed = Number(pick("speedplus", "speedPlus", "dmSpeed", "danmakuSpeed"));
+    if (Number.isFinite(speed) && speed >= 0.3 && speed <= 2) settings.speed = speed;
+
+    const area = Number(pick("dmarea", "dmArea", "danmakuArea"));
+    if (Number.isFinite(area) && area >= 0 && area <= 100) settings.area = area;
+
+    const blockColor = pick("blockcolor", "blockColor");
+    if (typeof blockColor === "boolean") settings.blockColor = !blockColor;
+
+    const blockScroll = pick("blockscroll", "blockScroll");
+    if (typeof blockScroll === "boolean") settings.blockScroll = !blockScroll;
+
+    return settings;
   }
 
   updateConfig(config) {
@@ -88,11 +157,11 @@ class VideoPreviewPlayer {
     const { innerWidth: vw, innerHeight: vh } = window;
     const margin = 12;
 
-    let left = anchorRect.right + margin;
+    let left = anchorRect.left - rect.width - margin;
     let top = anchorRect.top;
 
-    if (left + rect.width > vw) {
-      left = anchorRect.left - rect.width - margin;
+    if (left < margin) {
+      left = anchorRect.right + margin;
     }
 
     if (left < margin) {
@@ -124,6 +193,7 @@ class VideoPreviewPlayer {
     if (!this.config.enabled || !view?.bvid) return;
 
     this.ensurePanel();
+    this.dmSettings = this.readDanmakuSettings();
     clearTimeout(this.hideTimer);
 
     const sameVideo = this.currentBvid === view.bvid;
@@ -278,12 +348,22 @@ class VideoPreviewPlayer {
   spawnDanmaku(item) {
     if (!this.danmakuLayer) return;
 
+    const settings = this.dmSettings || {};
+    if (settings.enabled === false || settings.blockScroll) return;
+
+    const areaPct = [25, 50, 75].includes(settings.area) ? settings.area : 96;
+    const color = settings.blockColor
+      ? 0xffffff
+      : Number(item.color) || 0xffffff;
+
     const el = document.createElement("span");
     el.className = "newb-preview-dm";
     el.textContent = item.text;
-    el.style.top = `${Math.random() * 82}%`;
-    el.style.color = `#${Number(item.color).toString(16).padStart(6, "0")}`;
-    el.style.animationDuration = `${6 + Math.random() * 3}s`;
+    el.style.top = `${Math.random() * areaPct}%`;
+    el.style.color = `#${color.toString(16).padStart(6, "0")}`;
+    el.style.opacity = String(settings.opacity ?? 0.9);
+    el.style.fontSize = `${Math.round(16 * (settings.fontScale ?? 1))}px`;
+    el.style.animationDuration = `${(7 / (settings.speed || 1)).toFixed(2)}s`;
 
     this.danmakuLayer.appendChild(el);
     el.addEventListener("animationend", () => el.remove(), { once: true });
