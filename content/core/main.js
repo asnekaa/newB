@@ -49,6 +49,7 @@
 
     applyCleanup(activeConfig);
     window.newbVideoInfoHover?.updateConfig(activeConfig);
+    window.newbVideoPreview?.updateConfig(activeConfig);
     window.newbUserInfoHover?.updateConfig(activeConfig);
     window.newbCoverViewer?.updateConfig(activeConfig);
   };
@@ -63,6 +64,7 @@
 
     window.newbUIEngine?.update(activeConfig);
     window.newbVideoInfoHover?.updateConfig(activeConfig);
+    window.newbVideoPreview?.updateConfig(activeConfig);
     window.newbUserInfoHover?.updateConfig(activeConfig);
     window.newbCoverViewer?.updateConfig(activeConfig);
 

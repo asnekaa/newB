@@ -38,6 +38,7 @@
         "styles/features/hide-recommend.css",
         "styles/components/user-info-hover.css",
         "styles/components/video-info-hover.css",
+        "styles/components/video-preview-player.css",
         "styles/components/dark-mode.css",
         "styles/features/easter-egg.css"
       ],
@@ -51,6 +52,7 @@
         "content/modules/cover-viewer.js",
         "content/modules/user-info-hover.js",
         "content/modules/video-info-hover.js",
+        "content/modules/video-preview-player.js",
         "content/modules/easter-egg.js"
       ],
       "run_at": "document_start"

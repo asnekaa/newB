@@ -1,0 +1,316 @@
+class VideoPreviewPlayer {
+  constructor() {
+    this.panel = null;
+    this.video = null;
+    this.danmakuLayer = null;
+    this.titleEl = null;
+    this.tipEl = null;
+    this.hideTimer = null;
+    this.dmTimer = null;
+    this.dmList = [];
+    this.dmIndex = 0;
+    this.dmCid = null;
+    this.dmCache = new Map();
+    this.currentBvid = null;
+    this.currentAnchor = null;
+    this.config = { enabled: true };
+  }
+
+  updateConfig(config) {
+    const isMasterOn = config.masterSwitch ?? true;
+    this.config.enabled =
+      isMasterOn &&
+      (config.ui?.videoInfoHover ?? true) &&
+      (config.ui?.videoInfoHoverPreview ?? true);
+
+    if (!this.config.enabled) this.close();
+  }
+
+  isOpen() {
+    return Boolean(this.panel?.classList.contains("show"));
+  }
+
+  isHovered() {
+    return Boolean(this.panel?.matches?.(":hover"));
+  }
+
+  ensurePanel() {
+    if (this.panel) return;
+
+    const panel = document.createElement("div");
+    panel.id = "newb-preview-player";
+    panel.innerHTML = `
+      <div class="newb-preview-head">
+        <span class="newb-preview-title"></span>
+        <button class="newb-preview-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="newb-preview-stage">
+        <video class="newb-preview-video" controls playsinline preload="none"></video>
+        <div class="newb-preview-danmaku"></div>
+      </div>
+      <div class="newb-preview-tip">点击画面开启声音</div>
+    `;
+
+    document.body.appendChild(panel);
+
+    this.panel = panel;
+    this.video = panel.querySelector(".newb-preview-video");
+    this.danmakuLayer = panel.querySelector(".newb-preview-danmaku");
+    this.titleEl = panel.querySelector(".newb-preview-title");
+    this.tipEl = panel.querySelector(".newb-preview-tip");
+
+    panel
+      .querySelector(".newb-preview-close")
+      .addEventListener("click", () => this.close());
+
+    panel.addEventListener("mouseenter", () => clearTimeout(this.hideTimer));
+    panel.addEventListener("mouseleave", () => this.scheduleHide());
+
+    this.video.addEventListener("playing", () => this.startDanmakuLoop());
+    this.video.addEventListener("pause", () => this.stopDanmakuLoop());
+    this.video.addEventListener("seeking", () => this.resetDanmaku());
+    this.video.addEventListener("ended", () => this.stopDanmakuLoop());
+
+    this.video.addEventListener("click", () => {
+      if (this.video.muted) {
+        this.video.muted = false;
+        this.video.play().catch(() => {});
+        this.tipEl.classList.remove("show");
+      }
+    });
+  }
+
+  position(anchorRect) {
+    if (!this.panel) return;
+
+    const panel = this.panel;
+    const rect = panel.getBoundingClientRect();
+    const { innerWidth: vw, innerHeight: vh } = window;
+    const margin = 12;
+
+    let left = anchorRect.right + margin;
+    let top = anchorRect.top;
+
+    if (left + rect.width > vw) {
+      left = anchorRect.left - rect.width - margin;
+    }
+
+    if (left < margin) {
+      left = Math.max(margin, (vw - rect.width) / 2);
+      top = anchorRect.bottom + margin;
+    }
+
+    const maxTop = vh - rect.height - margin;
+    if (top > maxTop) top = maxTop;
+    if (top < margin) top = margin;
+
+    panel.style.left = `${left}px`;
+    panel.style.top = `${top}px`;
+  }
+
+  scheduleHide() {
+    clearTimeout(this.hideTimer);
+
+    this.hideTimer = setTimeout(() => {
+      const card = document.getElementById("newb-video-info-card");
+      if (card?.matches?.(":hover") || this.panel?.matches?.(":hover")) return;
+
+      this.close();
+      window.newbVideoInfoHover?.hideCard?.();
+    }, 250);
+  }
+
+  async open({ view, anchorRect }) {
+    if (!this.config.enabled || !view?.bvid) return;
+
+    this.ensurePanel();
+    clearTimeout(this.hideTimer);
+
+    const sameVideo = this.currentBvid === view.bvid;
+    this.currentBvid = view.bvid;
+    this.currentAnchor = anchorRect;
+
+    this.titleEl.textContent = view.title || "";
+
+    if (!sameVideo) {
+      this.resetDanmaku();
+      this.video.pause();
+      this.video.removeAttribute("src");
+      this.video.load();
+      this.tipEl.classList.remove("show");
+
+      const url = await this.fetchPreviewUrl(view.bvid, view.cid).catch(() => "");
+      if (this.currentBvid !== view.bvid) return;
+
+      if (!url) {
+        this.tipEl.textContent = "这个视频没有可用的预览";
+        this.tipEl.classList.add("show");
+      } else {
+        this.tipEl.textContent = "点击画面开启声音";
+        this.tipEl.classList.remove("show");
+        this.video.src = url;
+      }
+
+      this.loadDanmaku(view.cid);
+    }
+
+    this.panel.classList.add("show");
+    this.position(anchorRect);
+
+    if (this.video.src) {
+      this.video.muted = false;
+      this.video.volume = 0.8;
+
+      try {
+        await this.video.play();
+        this.tipEl.classList.remove("show");
+      } catch {
+        this.video.muted = true;
+        this.tipEl.textContent = "点击画面开启声音";
+        this.tipEl.classList.add("show");
+        this.video.play().catch(() => {});
+      }
+    }
+  }
+
+  async fetchPreviewUrl(bvid, cid) {
+    const query = new URLSearchParams({
+      bvid,
+      cid: String(cid || ""),
+      qn: "16",
+      fnval: "1",
+      platform: "html5",
+      high_quality: "1",
+    });
+
+    const res = await newbFetch(
+      `https://api.bilibili.com/x/player/playurl?${query.toString()}`,
+      { credentials: "include" },
+    );
+
+    const json = await res.json();
+    if (json.code !== 0) return "";
+
+    return json.data?.durl?.[0]?.url || "";
+  }
+
+  async loadDanmaku(cid) {
+    if (!cid) return;
+
+    this.dmCid = cid;
+
+    if (this.dmCache.has(cid)) {
+      this.dmList = this.dmCache.get(cid);
+      this.dmIndex = 0;
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://api.bilibili.com/x/v1/dm/list.so?oid=${cid}`,
+      );
+      const xml = await res.text();
+      const doc = new DOMParser().parseFromString(xml, "text/xml");
+      const list = [...doc.querySelectorAll("d")]
+        .map((node) => {
+          const parts = String(node.getAttribute("p") || "").split(",");
+          return {
+            time: Number(parts[0]) || 0,
+            color: Number(parts[3]) || 0xffffff,
+            text: node.textContent.trim(),
+          };
+        })
+        .filter((item) => item.text)
+        .sort((a, b) => a.time - b.time);
+
+      this.dmCache.set(cid, list);
+      if (this.dmCid !== cid) return;
+      this.dmList = list;
+      this.dmIndex = 0;
+    } catch {
+      this.dmList = [];
+    }
+  }
+
+  startDanmakuLoop() {
+    this.stopDanmakuLoop();
+
+    const tick = () => {
+      if (!this.video || this.video.paused) return;
+
+      const time = this.video.currentTime;
+
+      while (
+        this.dmIndex < this.dmList.length &&
+        this.dmList[this.dmIndex].time <= time
+      ) {
+        this.spawnDanmaku(this.dmList[this.dmIndex]);
+        this.dmIndex += 1;
+      }
+
+      this.dmTimer = requestAnimationFrame(tick);
+    };
+
+    this.dmTimer = requestAnimationFrame(tick);
+  }
+
+  stopDanmakuLoop() {
+    if (this.dmTimer) {
+      cancelAnimationFrame(this.dmTimer);
+      this.dmTimer = null;
+    }
+  }
+
+  resetDanmaku() {
+    this.stopDanmakuLoop();
+    this.dmIndex = 0;
+    if (this.danmakuLayer) this.danmakuLayer.textContent = "";
+
+    const time = this.video?.currentTime || 0;
+    while (
+      this.dmIndex < this.dmList.length &&
+      this.dmList[this.dmIndex].time < time
+    ) {
+      this.dmIndex += 1;
+    }
+  }
+
+  spawnDanmaku(item) {
+    if (!this.danmakuLayer) return;
+
+    const el = document.createElement("span");
+    el.className = "newb-preview-dm";
+    el.textContent = item.text;
+    el.style.top = `${Math.random() * 82}%`;
+    el.style.color = `#${Number(item.color).toString(16).padStart(6, "0")}`;
+    el.style.animationDuration = `${6 + Math.random() * 3}s`;
+
+    this.danmakuLayer.appendChild(el);
+    el.addEventListener("animationend", () => el.remove(), { once: true });
+
+    if (this.danmakuLayer.childElementCount > 60) {
+      this.danmakuLayer.firstElementChild?.remove();
+    }
+  }
+
+  close() {
+    clearTimeout(this.hideTimer);
+    this.stopDanmakuLoop();
+
+    if (!this.panel) return;
+
+    this.panel.classList.remove("show");
+    this.video?.pause();
+
+    if (this.video) {
+      this.video.removeAttribute("src");
+      this.video.load();
+    }
+
+    if (this.danmakuLayer) this.danmakuLayer.textContent = "";
+    this.dmIndex = 0;
+    this.currentBvid = null;
+  }
+}
+
+window.newbVideoPreview = new VideoPreviewPlayer();

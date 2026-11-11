@@ -178,7 +178,22 @@ class VideoInfoHoverEngine {
         clearTimeout(this.hideTimer),
       );
       this.card.addEventListener("mouseleave", () => {
-        this.hideTimer = setTimeout(() => this.hideCard(), 200);
+        this.hideTimer = setTimeout(() => {
+          if (this.card?.matches?.(":hover") || window.newbVideoPreview?.isHovered()) return;
+          window.newbVideoPreview?.close();
+          this.hideCard();
+        }, 200);
+      });
+
+      this.card.addEventListener("mouseover", (e) => {
+        const cover = e.target.closest(".newb-cover");
+        if (!cover || !this.currentView) return;
+        if (e.relatedTarget && cover.contains(e.relatedTarget)) return;
+
+        window.newbVideoPreview?.open({
+          view: this.currentView,
+          anchorRect: this.card.getBoundingClientRect(),
+        });
       });
 
       if (typeof ResizeObserver !== "undefined") {
@@ -492,6 +507,8 @@ class VideoInfoHoverEngine {
   renderCard(data, { pending = false } = {}) {
     const { View: view, Tags: tags = [], Conclusion: conclusion, Reply: reply } =
       data;
+
+    this.currentView = view;
     const type = VIDEO_TYPE_MAP[view.tid] || "未知";
 
     const tagsHtml = tags
@@ -739,6 +756,8 @@ class VideoInfoHoverEngine {
     this.card?.classList.remove("show");
     this.currentBvid = null;
     this.currentAnchor = null;
+    this.currentView = null;
+    window.newbVideoPreview?.close();
   }
 
   bindEvents() {
@@ -792,7 +811,11 @@ class VideoInfoHoverEngine {
       this.pendingBvid = null;
 
       clearTimeout(this.showTimer);
-      this.hideTimer = setTimeout(() => this.hideCard(), 200);
+      this.hideTimer = setTimeout(() => {
+        if (this.card?.matches?.(":hover") || window.newbVideoPreview?.isHovered()) return;
+        window.newbVideoPreview?.close();
+        this.hideCard();
+      }, 200);
     });
   }
 }
