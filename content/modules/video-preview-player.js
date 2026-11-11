@@ -223,14 +223,15 @@ class VideoPreviewPlayer {
       return;
     }
 
-    const cursor = this.dragState
-      ? "grabbing"
-      : this.resizeState.corner === "nw" || this.resizeState.corner === "se"
-        ? "nwse-resize"
-        : "nesw-resize";
+    if (this.resizeState) {
+      const cursor =
+        this.resizeState.corner === "nw" || this.resizeState.corner === "se"
+          ? "nwse-resize"
+          : "nesw-resize";
 
-    this.panel.style.cursor = cursor;
-    document.body.style.cursor = cursor;
+      this.panel.style.cursor = cursor;
+      document.body.style.cursor = cursor;
+    }
 
     try {
       this.panel.setPointerCapture?.(e.pointerId);
