@@ -28,6 +28,31 @@ class VideoPreviewPlayer {
       blockScroll: false,
     };
 
+    try {
+      const profile = JSON.parse(
+        localStorage.getItem("bpx_player_profile") || "null",
+      );
+      const dm = profile?.dmSetting;
+
+      if (dm && typeof dm === "object") {
+        const clamp = (value, min, max) =>
+          Math.min(max, Math.max(min, Number(value) || min));
+        const area = Number(dm.dmarea);
+        const areaPct = [25, 50, 75].includes(area) ? area : 100;
+
+        return {
+          enabled: dm.dmSwitch !== false && dm.typeScroll !== false,
+          opacity: clamp(dm.opacity, 0.05, 1),
+          fontScale: clamp(dm.fontsize, 0.4, 1.6),
+          speed: clamp(dm.speedplus, 0.4, 1.6),
+          area: areaPct,
+          blockColor: dm.typeColor === false,
+          blockScroll: dm.typeScroll === false,
+          bold: dm.bold === true,
+        };
+      }
+    } catch {}
+
     const flat = new Map();
 
     const walk = (value, depth) => {
@@ -352,6 +377,7 @@ class VideoPreviewPlayer {
     if (settings.enabled === false || settings.blockScroll) return;
 
     const areaPct = [25, 50, 75].includes(settings.area) ? settings.area : 96;
+    const bold = settings.bold ? "700" : "600";
     const color = settings.blockColor
       ? 0xffffff
       : Number(item.color) || 0xffffff;
@@ -364,6 +390,7 @@ class VideoPreviewPlayer {
     el.style.opacity = String(settings.opacity ?? 0.9);
     el.style.fontSize = `${Math.round(16 * (settings.fontScale ?? 1))}px`;
     el.style.animationDuration = `${(7 / (settings.speed || 1)).toFixed(2)}s`;
+    el.style.fontWeight = bold;
 
     this.danmakuLayer.appendChild(el);
     el.addEventListener("animationend", () => el.remove(), { once: true });
