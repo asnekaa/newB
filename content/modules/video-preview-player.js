@@ -223,6 +223,15 @@ class VideoPreviewPlayer {
       return;
     }
 
+    const cursor = this.dragState
+      ? "grabbing"
+      : this.resizeState.corner === "nw" || this.resizeState.corner === "se"
+        ? "nwse-resize"
+        : "nesw-resize";
+
+    this.panel.style.cursor = cursor;
+    document.body.style.cursor = cursor;
+
     try {
       this.panel.setPointerCapture?.(e.pointerId);
     } catch {}
@@ -290,6 +299,8 @@ class VideoPreviewPlayer {
     this.dragState = null;
     this.resizeState = null;
     this.panel.classList.remove("is-dragging", "is-resizing");
+    this.panel.style.cursor = "";
+    document.body.style.cursor = "";
     try {
       this.panel.releasePointerCapture?.(e.pointerId);
     } catch {}
@@ -372,7 +383,7 @@ class VideoPreviewPlayer {
       const aspect = nativeWidth > 0 && nativeHeight > 0 ? nativeWidth / nativeHeight : 16 / 9;
       const maxWidth = Math.min(960, window.innerWidth - 24);
       const desired = Math.round(
-        Math.min(Math.max(360, 480 * aspect), Math.max(360, maxWidth)),
+        Math.min(Math.max(360, 360 * aspect), Math.max(360, maxWidth)),
       );
 
       this.panel.style.width = `${desired}px`;
