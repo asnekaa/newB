@@ -368,12 +368,11 @@ class VideoPreviewPlayer {
       this.panel.style.removeProperty("top");
 
       const nativeWidth = Number(view.dimension?.width) || 0;
+      const nativeHeight = Number(view.dimension?.height) || 0;
+      const aspect = nativeWidth > 0 && nativeHeight > 0 ? nativeWidth / nativeHeight : 16 / 9;
       const maxWidth = Math.min(960, window.innerWidth - 24);
       const desired = Math.round(
-        Math.min(
-          Math.max(360, nativeWidth ? nativeWidth * 0.75 : 480),
-          Math.max(360, maxWidth),
-        ),
+        Math.min(Math.max(360, 480 * aspect), Math.max(360, maxWidth)),
       );
 
       this.panel.style.width = `${desired}px`;
@@ -434,7 +433,7 @@ class VideoPreviewPlayer {
     const query = new URLSearchParams({
       bvid,
       cid: String(cid || ""),
-      qn: "64",
+      qn: "127",
       fnval: "1",
       platform: "html5",
       high_quality: "1",

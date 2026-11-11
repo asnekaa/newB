@@ -44,25 +44,25 @@
 .newb-preview-resize.nw {
   left: 0;
   top: 0;
-  cursor: nwse-resize;
+  cursor: default;
 }
 
 .newb-preview-resize.ne {
   right: 0;
   top: 0;
-  cursor: nesw-resize;
+  cursor: default;
 }
 
 .newb-preview-resize.sw {
   left: 0;
   bottom: 0;
-  cursor: nesw-resize;
+  cursor: default;
 }
 
 .newb-preview-resize.se {
   right: 0;
   bottom: 0;
-  cursor: nwse-resize;
+  cursor: default;
 }
 
 .newb-preview-resize::before {
