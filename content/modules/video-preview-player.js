@@ -140,6 +140,7 @@ class VideoPreviewPlayer {
     panel.innerHTML = `
       <div class="newb-preview-head">
         <span class="newb-preview-title"></span>
+        <button class="newb-preview-pip" type="button" aria-label="画中画" title="画中画">⧉</button>
         <button class="newb-preview-close" type="button" aria-label="关闭">×</button>
       </div>
       <div class="newb-preview-stage">
@@ -157,9 +158,23 @@ class VideoPreviewPlayer {
     this.titleEl = panel.querySelector(".newb-preview-title");
     this.tipEl = panel.querySelector(".newb-preview-tip");
 
+    this.pipBtn = panel.querySelector(".newb-preview-pip");
+
     panel
       .querySelector(".newb-preview-close")
       .addEventListener("click", () => this.close());
+
+    this.pipBtn?.addEventListener("click", () => this.togglePip());
+
+    this.video.addEventListener("enterpictureinpicture", () => {
+      this.panel.classList.add("is-pip");
+    });
+
+    this.video.addEventListener("leavepictureinpicture", () => {
+      this.panel.classList.remove("is-pip");
+
+      if (!this.isOpen()) this.close();
+    });
 
     panel.addEventListener("mouseenter", () => clearTimeout(this.hideTimer));
     panel.addEventListener("mouseleave", () => this.scheduleHide());
@@ -192,6 +207,24 @@ class VideoPreviewPlayer {
         this.tipEl.classList.remove("show");
       }
     });
+  }
+
+  async togglePip() {
+    if (!this.video) return;
+
+    try {
+      if (document.pictureInPictureElement === this.video) {
+        await document.exitPictureInPicture();
+      } else {
+        if (document.pictureInPictureEnabled === false) {
+          throw new Error("PiP disabled");
+        }
+        await this.video.requestPictureInPicture();
+      }
+    } catch {
+      this.tipEl.textContent = "这个视频不支持画中画";
+      this.tipEl.classList.add("show");
+    }
   }
 
   onPointerDown(e) {
@@ -579,7 +612,12 @@ class VideoPreviewPlayer {
     if (!this.panel) return;
 
     this.panel.classList.remove("show");
-    this.video?.pause();
+
+    if (document.pictureInPictureElement !== this.video) {
+      this.video?.pause();
+    } else {
+      return;
+    }
 
     if (this.video) {
       this.video.removeAttribute("src");
