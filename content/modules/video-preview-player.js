@@ -13,6 +13,10 @@ class VideoPreviewPlayer {
     this.dmCache = new Map();
     this.currentBvid = null;
     this.currentAnchor = null;
+    this.userPosition = null;
+    this.userWidth = null;
+    this.dragState = null;
+    this.resizeState = null;
     this.config = { enabled: true };
     this.dmSettings = this.readDanmakuSettings();
   }
@@ -160,6 +164,19 @@ class VideoPreviewPlayer {
     panel.addEventListener("mouseenter", () => clearTimeout(this.hideTimer));
     panel.addEventListener("mouseleave", () => this.scheduleHide());
 
+    const grip = document.createElement("div");
+    grip.className = "newb-preview-resize";
+    panel.appendChild(grip);
+
+    panel.addEventListener("pointerdown", (e) => this.onPointerDown(e));
+    panel.addEventListener("pointermove", (e) => this.onPointerMove(e));
+    panel.addEventListener("pointerup", (e) => this.onPointerUp(e));
+    panel.addEventListener("pointercancel", (e) => this.onPointerUp(e));
+
+    panel
+      .querySelector(".newb-preview-head")
+      .addEventListener("dblclick", () => this.resetPosition());
+
     this.video.addEventListener("playing", () => this.startDanmakuLoop());
     this.video.addEventListener("pause", () => this.stopDanmakuLoop());
     this.video.addEventListener("seeking", () => this.resetDanmaku());
@@ -174,8 +191,98 @@ class VideoPreviewPlayer {
     });
   }
 
+  onPointerDown(e) {
+    if (e.button !== 0 || !this.panel) return;
+    if (e.target.closest(".newb-preview-close")) return;
+
+    const rect = this.panel.getBoundingClientRect();
+
+    if (e.target.closest(".newb-preview-resize")) {
+      this.resizeState = { startX: e.clientX, startWidth: rect.width };
+      this.panel.classList.add("is-resizing");
+    } else if (e.target.closest(".newb-preview-head")) {
+      this.dragState = {
+        dx: e.clientX - rect.left,
+        dy: e.clientY - rect.top,
+      };
+      this.panel.classList.add("is-dragging");
+    } else {
+      return;
+    }
+
+    try {
+      this.panel.setPointerCapture?.(e.pointerId);
+    } catch {}
+
+    e.preventDefault();
+  }
+
+  onPointerMove(e) {
+    if (!this.panel) return;
+
+    if (this.dragState) {
+      const rect = this.panel.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const left = Math.min(
+        Math.max(0, e.clientX - this.dragState.dx),
+        Math.max(0, vw - rect.width),
+      );
+      const top = Math.min(
+        Math.max(0, e.clientY - this.dragState.dy),
+        Math.max(0, vh - rect.height),
+      );
+
+      this.panel.style.left = `${left}px`;
+      this.panel.style.top = `${top}px`;
+      this.userPosition = { left, top };
+    }
+
+    if (this.resizeState) {
+      const min = 320;
+      const max = Math.min(960, window.innerWidth - 24);
+      const width = Math.min(
+        Math.max(min, this.resizeState.startWidth + (e.clientX - this.resizeState.startX)),
+        Math.max(min, max),
+      );
+
+      this.panel.style.width = `${width}px`;
+      this.userWidth = width;
+    }
+  }
+
+  onPointerUp(e) {
+    if (!this.panel) return;
+
+    this.dragState = null;
+    this.resizeState = null;
+    this.panel.classList.remove("is-dragging", "is-resizing");
+    try {
+      this.panel.releasePointerCapture?.(e.pointerId);
+    } catch {}
+  }
+
+  resetPosition() {
+    this.userPosition = null;
+    this.userWidth = null;
+
+    if (this.panel) {
+      this.panel.style.removeProperty("width");
+      this.panel.style.removeProperty("left");
+      this.panel.style.removeProperty("top");
+    }
+
+    if (this.currentAnchor) this.position(this.currentAnchor);
+  }
+
   position(anchorRect) {
     if (!this.panel) return;
+
+    if (this.userPosition) {
+      this.panel.style.left = `${this.userPosition.left}px`;
+      this.panel.style.top = `${this.userPosition.top}px`;
+      return;
+    }
 
     const panel = this.panel;
     const rect = panel.getBoundingClientRect();
@@ -206,6 +313,8 @@ class VideoPreviewPlayer {
     clearTimeout(this.hideTimer);
 
     this.hideTimer = setTimeout(() => {
+      if (this.dragState || this.resizeState) return;
+
       const card = document.getElementById("newb-video-info-card");
       if (card?.matches?.(":hover") || this.panel?.matches?.(":hover")) return;
 

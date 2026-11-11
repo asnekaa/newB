@@ -25,12 +25,43 @@
 }
 
 .newb-preview-head {
+  cursor: grab;
+  user-select: none;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
   color: #e0e5ea;
   font-size: 12px;
+}
+
+#newb-preview-player.is-dragging .newb-preview-head {
+  cursor: grabbing;
+}
+
+.newb-preview-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 3;
+}
+
+.newb-preview-resize::before {
+  content: "";
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+#newb-preview-player.is-dragging .newb-preview-resize {
+  pointer-events: none;
 }
 
 .newb-preview-title {
