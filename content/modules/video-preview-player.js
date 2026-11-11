@@ -477,7 +477,7 @@ class VideoPreviewPlayer {
     const query = new URLSearchParams({
       bvid,
       cid: String(cid || ""),
-      qn: "127",
+      qn: "64",
       fnval: "1",
       platform: "html5",
       high_quality: "1",
