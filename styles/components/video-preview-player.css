@@ -1,6 +1,6 @@
 #newb-preview-player {
   position: fixed;
-  z-index: 999998;
+  z-index: 1000000;
   width: 480px;
   background: #0f1419;
   border-radius: 12px;
