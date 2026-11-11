@@ -25,7 +25,6 @@
 }
 
 .newb-preview-head {
-  cursor: grab;
   user-select: none;
   display: flex;
   align-items: center;
@@ -33,10 +32,6 @@
   padding: 8px 10px;
   color: #e0e5ea;
   font-size: 12px;
-}
-
-#newb-preview-player.is-dragging .newb-preview-head {
-  cursor: grabbing;
 }
 
 .newb-preview-resize {

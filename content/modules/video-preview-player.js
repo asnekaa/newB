@@ -327,6 +327,15 @@ class VideoPreviewPlayer {
     if (!this.config.enabled || !view?.bvid) return;
 
     this.ensurePanel();
+
+    if (!this.isOpen()) {
+      this.userPosition = null;
+      this.userWidth = null;
+      this.panel.style.removeProperty("width");
+      this.panel.style.removeProperty("left");
+      this.panel.style.removeProperty("top");
+    }
+
     this.dmSettings = this.readDanmakuSettings();
     clearTimeout(this.hideTimer);
 
